@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>PharmaCare - Inventory Management</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1a5f3e",
+                        secondary: "#d62828",
+                        accent: "#8b5a2b",
+                        "background-light": "#f1f5f9",
+                        "background-dark": "#0f172a",
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1e293b",
+                        "text-light": "#1e293b",
+                        "text-dark": "#f1f5f9",
+                        "subtext-light": "#64748b",
+                        "subtext-dark": "#94a3b8",
+                        "border-light": "#e8e6e3",
+                        "border-dark": "#334155",
+                        "success": "#22C55E",
+                        "warning": "#F59E0B",
+                        "danger": "#EF4444"
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .action-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .edit-btn {
+            background-color: rgba(26, 95, 62, 0.1);
+            color: rgb(26, 95, 62);
+            border: 1px solid rgba(26, 95, 62, 0.2);
+        }
+        .edit-btn:hover {
+            background-color: rgba(26, 95, 62, 0.2);
+        }
+        .delete-btn {
+            background-color: rgba(214, 40, 40, 0.1);
+            color: rgb(214, 40, 40);
+            border: 1px solid rgba(214, 40, 40, 0.2);
+        }
+        .delete-btn:hover {
+            background-color: rgba(214, 40, 40, 0.2);
+        }
+        .archive-btn {
+            background-color: rgba(139, 90, 43, 0.1);
+            color: rgb(139, 90, 43);
+            border: 1px solid rgba(139, 90, 43, 0.2);
+        }
+        .archive-btn:hover {
+            background-color: rgba(139, 90, 43, 0.2);
+        }
+        .restore-btn {
+            background-color: rgba(26, 95, 62, 0.1);
+            color: rgb(26, 95, 62);
+            border: 1px solid rgba(26, 95, 62, 0.2);
+        }
+        .restore-btn:hover {
+            background-color: rgba(26, 95, 62, 0.2);
+        }
+        .tab-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background-color: rgba(26, 95, 62, 0.1);
+            color: rgb(26, 95, 62);
+        }
+        .tab-btn:not(.active) {
+            color: rgb(100, 116, 139);
+        }
+        .tab-btn:not(.active):hover {
+            background-color: rgba(100, 116, 139, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+    <div class="flex h-screen">
+        <aside class="w-64 bg-surface-light dark:bg-surface-dark flex flex-col border-r border-border-light dark:border-border-dark">
+            <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark">
+                 <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg border border-slate-100 dark:border-slate-700 shadow-sm">
+                    WS
+                </div>
+                <div>
+                    <h1 class="font-bold text-primary dark:text-green-400 leading-tight">Well Served</h1>
+                    <p class="text-[10px] uppercase tracking-wider text-accent dark:text-amber-600 font-semibold">Since 1994</p>
+                </div>
+            </div>
+            </div>
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <div class="px-2 text-sm font-semibold text-subtext-light dark:text-subtext-dark whitespace-nowrap">Admin Panel</div>
+                <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="dashboard_admin.html">
+                    <span class="material-icons mr-3">dashboard</span> Dashboard
+                </a>
+                <a class="flex items-center px-4 py-2 bg-primary/10 text-primary rounded-md font-semibold whitespace-nowrap" href="inventory_admin.html">
+                    <span class="material-icons mr-3">inventory_2</span> Inventory
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="sales-reports.html">
+                    <span class="material-icons mr-3">analytics</span> Sales Reports
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="patient_records.html">
+                    <span class="material-icons mr-3">medical_services</span> Patient Records
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="medication_alerts.html">
+                    <span class="material-icons mr-3">notifications</span> Medication Alerts
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="user_management.html">
+                    <span class="material-icons mr-3">group</span> User Management
+                </a>
+                <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="settings_tab1.html">
+                    <span class="material-icons mr-3">settings</span> System Settings
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 flex flex-col">
+            <header class="h-16 bg-surface-light dark:bg-surface-dark flex items-center justify-between px-6 border-b border-border-light dark:border-border-dark">
+                <div class="flex items-center gap-2">
+                    <a href="../../html/index.html" class="flex items-center gap-1 text-sm text-subtext-light dark:text-subtext-dark hover:text-primary">
+                        <span class="material-icons">arrow_back_ios_new</span> Back to IHMS
+                    </a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-subtext-light dark:text-subtext-dark">search</span>
+                        <input id="searchInput" class="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-primary text-text-light dark:text-text-dark" placeholder="Search..." type="text"/>
+                    </div>
+                    <button class="relative text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
+                        <span class="material-icons">notifications</span>
+                        <span class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-secondary"></span>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">DB</div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="text-3xl font-bold text-text-light dark:text-text-dark">Inventory Management</h2>
+                        <p class="text-subtext-light dark:text-subtext-dark mt-1">Manage medicine stock, track expiries and supplier information</p>
+                    </div>
+                    <button id="addMedicineBtn" class="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-colors shadow-md">
+                        <span class="material-icons">add</span> Add Medicine
+                    </button>
+                </div>
+
+                <!-- Tabs for Inventory and Archive -->
+                <div class="flex mb-6 bg-surface-light dark:bg-surface-dark rounded-lg p-1 w-fit border border-border-light dark:border-border-dark">
+                    <button id="inventoryTab" class="tab-btn active">Active Inventory</button>
+                    <button id="archiveTab" class="tab-btn">Archive</button>
+                </div>
+
+                <!-- Alerts Section -->
+                <div id="alertsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                   <div class="bg-[rgba(26,95,62,0.1)] dark:bg-[rgba(26,95,62,0.2)] border-l-4 border-[rgb(26,95,62)] p-6 rounded-lg">
+    <div class="flex items-start gap-4">
+        <span class="material-icons text-[rgb(26,95,62)] mt-1">warning_amber</span>
+        <div>
+            <h3 class="font-semibold text-[rgb(26,95,62)] text-lg">Low Stock & Out-of-Stock Alerts</h3>
+            <ul id="lowStockAlerts" class="list-disc list-inside mt-2 space-y-1 text-text-light dark:text-text-dark text-sm">
+                </ul>
+        </div>
+    </div>
+</div>
+
+                    <div class="bg-secondary/10 dark:bg-secondary/20 border-l-4 border-secondary p-6 rounded-lg">
+                        <div class="flex items-start gap-4">
+                            <span class="material-icons text-secondary mt-1">event_busy</span>
+                            <div>
+                                <h3 class="font-semibold text-secondary text-lg">Expiry Alerts (Next 30 Days)</h3>
+                                <ul id="expiryAlerts" class="list-disc list-inside mt-2 space-y-1 text-text-light dark:text-text-dark text-sm">
+                                    <!-- Dynamic content will be loaded here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory Table -->
+                <div id="inventorySection" class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm overflow-hidden border border-border-light dark:border-border-dark">
+                    <div class="p-6 border-b border-border-light dark:border-border-dark flex items-center justify-between">
+                        <div class="relative w-full max-w-sm">
+                            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-subtext-light dark:text-subtext-dark">search</span>
+                            <input id="tableSearchInput" class="w-full pl-10 pr-4 py-2 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Search medicines..." type="text"/>
+                        </div>
+                        <button id="filterBtn" class="border border-border-light dark:border-border-dark px-4 py-2 rounded-lg flex items-center gap-2 text-subtext-light dark:text-subtext-dark hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                            <span class="material-icons" style="font-size: 20px;">filter_list</span> Filter
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-primary text-white text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Medicine Name</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Batch Number</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Quantity</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Expiry Date</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Supplier</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Price</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Status</th>
+                                    <th class="px-6 py-4 font-semibold text-center" scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody">
+                                <!-- Dynamic content will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Archive Table -->
+                <div id="archiveSection" class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm overflow-hidden hidden border border-border-light dark:border-border-dark">
+                    <div class="p-6 border-b border-border-light dark:border-border-dark flex items-center justify-between">
+                        <div class="relative w-full max-w-sm">
+                            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-subtext-light dark:text-subtext-dark">search</span>
+                            <input id="archiveSearchInput" class="w-full pl-10 pr-4 py-2 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Search archived medicines..." type="text"/>
+                        </div>
+                        <button id="clearArchiveBtn" class="action-btn delete-btn">
+                            <span class="material-icons" style="font-size: 20px;">delete_sweep</span> Clear Archive
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-primary text-white text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Medicine Name</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Batch Number</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Quantity</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Expiry Date</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Supplier</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Price</th>
+                                    <th class="px-6 py-4 font-semibold" scope="col">Archived Date</th>
+                                    <th class="px-6 py-4 font-semibold text-center" scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archiveTableBody">
+                                <!-- Dynamic content will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </main>
+    </div>
+
+    <!-- Add/Edit Medicine Modal -->
+    <div id="medicineModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-surface-light dark:bg-surface-dark rounded-xl p-6 max-w-md w-full border border-border-light dark:border-border-dark max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 id="modalTitle" class="text-xl font-semibold text-text-light dark:text-text-dark">Add New Medicine</h2>
+                <button id="closeModalBtn" class="text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form id="medicineForm">
+                <div class="space-y-4">
+                    <div class="relative group">
+                        <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Select Medicine</label>
+                        <div class="relative">
+                            <input type="text" id="medicineSearchInput" class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg pl-3 pr-10 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Type to search..." autocomplete="off">
+                            <input type="hidden" id="medicineSelect" required>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <span class="material-icons text-gray-400 text-sm">expand_more</span>
+                            </div>
+                        </div>
+                        <div id="medicineDropdownList" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Batch Number</label>
+                        <input type="text" id="batchNumber" required class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Batch number"/>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Quantity</label>
+                            <input type="number" id="quantity" required min="1" class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="0"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Cost Price (₱)</label>
+                            <input type="number" id="costPrice" step="0.01" min="0" required class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Buy Price"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Selling Price (₱)</label>
+                            <input type="number" id="sellingPrice" step="0.01" min="0" required class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Sell Price"/>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Expiry Date</label>
+                        <input type="date" id="expiryDate" class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark"/>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Minimum Stock Level</label>
+                        <input type="number" id="minStockLevel" required min="1" class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="10" value="10"/>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" id="cancelMedicineBtn" class="flex-1 px-4 py-2 border border-border-light dark:border-border-dark rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-text-light dark:text-text-dark">Cancel</button>
+                    <button type="button" id="saveMedicineBtn" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">Save Medicine</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-surface-light dark:bg-surface-dark rounded-xl p-6 max-w-md w-full border border-border-light dark:border-border-dark">
+            <div class="flex items-center justify-center mb-4">
+                <span class="material-icons text-secondary text-5xl">warning</span>
+            </div>
+            <h2 class="text-xl font-semibold text-center text-text-light dark:text-text-dark mb-2">Confirm Deletion</h2>
+            <p id="deleteMessage" class="text-center text-subtext-light dark:text-subtext-dark mb-6">Are you sure you want to delete this medicine? This action cannot be undone.</p>
+            <div class="flex gap-3">
+                <button id="cancelDeleteBtn" class="flex-1 px-4 py-2 border border-border-light dark:border-border-dark rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-text-light dark:text-text-dark">Cancel</button>
+                <button id="confirmDeleteBtn" class="flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div id="filterModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-lg w-full max-w-sm mx-4 border border-border-light dark:border-border-dark">
+            <div class="p-6 border-b border-border-light dark:border-border-dark flex justify-between items-center">
+                <h3 class="text-xl font-bold text-text-light dark:text-text-dark">Filter Inventory</h3>
+                <button id="closeFilterModal" class="text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="filterForm">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-text-light dark:text-text-dark mb-2">Filter by Status</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="filterStatus" value="all" class="text-primary focus:ring-primary" checked>
+                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">All Active</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="filterStatus" value="inStock" class="text-primary focus:ring-primary">
+                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">In Stock</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="filterStatus" value="lowStock" class="text-primary focus:ring-primary">
+                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">Low Stock</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="filterStatus" value="outOfStock" class="text-primary focus:ring-primary">
+                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">Out of Stock</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="filterStatus" value="expired" class="text-primary focus:ring-primary">
+                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">Expired</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="p-6 border-t border-border-light dark:border-border-dark flex justify-end gap-3">
+                <button id="clearFilterBtn" type="button" class="px-4 py-2 border border-border-light dark:border-border-dark text-text-light dark:text-text-dark rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    Clear Filter
+                </button>
+                <button id="applyFilterBtn" type="button" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors">
+                    Apply Filter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the JavaScript -->
+    <script>
+        class EnhancedInventoryManager {
+            constructor() {
+                this.inventoryData = [];
+                this.archiveData = [];
+                this.currentEditingId = null;
+                this.currentAction = { type: null, id: null, data: null };
+                this.currentTab = 'inventory';
+                this.currentFilter = 'all';
+                this.currentSearch = '';
+                this.cachedMedicines = [];
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                if(this.getToken()) {
+                    await this.fetchInventory();
+                    await this.fetchArchivedInventory();
+                    console.log("Enhanced Inventory Manager initialized!");
+                }
+            }
+
+            getToken() {
+                const userInfoString = sessionStorage.getItem('userInfo');
+                if (!userInfoString) {
+                    this.handleLogout("Session expired.");
+                    return null;
+                }
+                try {
+                    const userInfo = JSON.parse(userInfoString);
+                    if (!userInfo || !userInfo.token) {
+                        this.handleLogout("Invalid token.");
+                        return null;
+                    }
+                    return userInfo.token;
+                } catch (e) {
+                    this.handleLogout("Data corrupted.");
+                    return null;
+                }
+            }
+
+            handleLogout(msg) {
+                if(msg) this.showNotification(msg, "error");
+                sessionStorage.removeItem('userInfo');
+                setTimeout(() => {
+                    window.location.href = '../../html/login.html';
+                }, 1500);
+            }
+
+            async apiCall(method, url, token, body = null) {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                };
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(`http://localhost:5001${url}`, options);
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const textError = await response.text();
+                    throw new Error(textError || 'Server Error');
+                }
+
+                const data = await response.json();
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        this.handleLogout("Unauthorized access.");
+                    }
+                    throw new Error(data.message || `An error occurred (${response.status})`);
+                }
+                return data;
+            }
+
+            async fetchInventory() {
+                const token = this.getToken();
+                if (!token) return;
+
+                let url = '/api/inventory?';
+                const params = new URLSearchParams();
+                if (this.currentSearch) {
+                    params.append('name', this.currentSearch);
+                }
+                if (this.currentFilter !== 'all') {
+                    params.append('status', this.currentFilter);
+                }
+                url += params.toString();
+
+                try {
+                    this.inventoryData = await this.apiCall('GET', url, token);
+                    this.renderInventoryTable();
+                    this.updateAlerts();
+                } catch (error) {
+                    this.showNotification(error.message, "error");
+                }
+            }
+
+            async fetchArchivedInventory() {
+                const token = this.getToken();
+                if (!token) return;
+
+                try {
+                    this.archiveData = await this.apiCall('GET', '/api/inventory/archived', token);
+                    this.renderArchiveTable();
+                } catch (error) {
+                    this.showNotification(error.message, "error");
+                }
+            }
+
+            async populateDropdown() {
+                const select = document.getElementById('medicineSelect');
+                select.innerHTML = '<option value="" disabled selected>Loading...</option>';
+
+                const medicines = await this.apiCall('GET', '/api/medicines/dropdown', this.getToken());
+                if (medicines && Array.isArray(medicines)) {
+                    select.innerHTML = '<option value="" disabled selected>Select Medicine</option>';
+                    medicines.forEach(med => {
+                        const option = document.createElement('option');
+                        option.value = med.id;
+                        option.textContent = med.label;
+                        select.appendChild(option);
+                    });
+                } else {
+                    select.innerHTML = '<option value="" disabled>Error loading list</option>';
+                }
+            }
+
+            async openMedicineModal() {
+                document.getElementById('medicineModal').classList.remove('hidden');
+                await this.populateDropdown();
+            }
+
+            closeMedicineModal() {
+                document.getElementById('medicineModal').classList.add('hidden');
+            }
+
+            async saveMedicine() {
+                const hiddenIdInput = document.getElementById('medicineSelect');
+                if (!hiddenIdInput.value) {
+                    this.showNotification("Please select a medicine from the list", "error");
+                    document.getElementById('medicineSearchInput').focus();
+                    return;
+                }
+
+                const token = this.getToken();
+                if (!token) return;
+
+                const medicineData = {
+                    medicineId: hiddenIdInput.value,
+                    batchNumber: document.getElementById('batchNumber').value,
+                    quantity: parseInt(document.getElementById('quantity').value),
+                    costPrice: parseFloat(document.getElementById('costPrice').value),
+                    sellingPrice: parseFloat(document.getElementById('sellingPrice').value),
+                    expiryDate: document.getElementById('expiryDate').value,
+                    minStockLevel: parseInt(document.getElementById('minStockLevel').value),
+                };
+
+                if(medicineData.expiryDate === "") {
+                    delete medicineData.expiryDate;
+                }
+
+                const isEditMode = !!this.currentEditingId;
+                const method = isEditMode ? 'PUT' : 'POST';
+                const url = isEditMode ? `/api/inventory/${this.currentEditingId}` : '/api/inventory';
+
+                try {
+                    await this.apiCall(method, url, token, medicineData);
+                    this.closeMedicineModal();
+                    this.showNotification(isEditMode ? "Stock updated!" : "Stock added!", "success");
+                    await this.fetchInventory();
+                } catch (error) {
+                    this.showNotification(error.message, "error");
+                }
+            }
+
+            async handleConfirmAction() {
+                const { type, id } = this.currentAction;
+                const token = this.getToken();
+                if (!token) return;
+
+                try {
+                    let successMessage = "";
+
+                    if (type === 'archive') {
+                        await this.apiCall('PATCH', `/api/inventory/${id}/archive`, token);
+                        successMessage = "Item archived successfully!";
+                    } else if (type === 'restore') {
+                        await this.apiCall('PATCH', `/api/inventory/${id}/restore`, token);
+                        successMessage = "Item restored successfully!";
+                    } else if (type === 'delete') {
+                        await this.apiCall('DELETE', `/api/inventory/${id}`, token);
+                        successMessage = "Item permanently deleted!";
+                    } else if (type === 'clear-archive') {
+                        const result = await this.apiCall('DELETE', '/api/inventory/archive/all', token);
+                        successMessage = `Archive cleared! Items deleted.`;
+                    }
+
+                    this.closeDeleteModal();
+                    this.showNotification(successMessage, "success");
+
+                    await this.fetchInventory();
+                    await this.fetchArchivedInventory();
+                } catch (error) {
+                    console.error("Action failed:", error);
+                    this.showNotification(error.message, "error");
+                    this.closeDeleteModal();
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('addMedicineBtn').addEventListener('click', () => this.openMedicineModal());
+                document.getElementById('inventoryTab').addEventListener('click', () => this.switchTab('inventory'));
+                document.getElementById('archiveTab').addEventListener('click', () => this.switchTab('archive'));
+                document.getElementById('tableSearchInput').addEventListener('input', (e) => this.handleSearch(e, 'inventory'));
+                document.getElementById('archiveSearchInput').addEventListener('input', (e) => this.handleSearch(e, 'archive'));
+                document.getElementById('closeModalBtn').addEventListener('click', () => this.closeMedicineModal());
+                document.getElementById('cancelMedicineBtn').addEventListener('click', () => this.closeMedicineModal());
+                document.getElementById('saveMedicineBtn').addEventListener('click', () => this.saveMedicine());
+                document.getElementById('cancelDeleteBtn').addEventListener('click', () => this.closeDeleteModal());
+                document.getElementById('confirmDeleteBtn').addEventListener('click', () => this.handleConfirmAction());
+                document.getElementById('filterBtn').addEventListener('click', () => this.openFilterModal());
+                document.getElementById('closeFilterModal').addEventListener('click', () => this.closeFilterModal());
+                document.getElementById('applyFilterBtn').addEventListener('click', () => this.applyFilters());
+                document.getElementById('clearFilterBtn').addEventListener('click', () => this.clearFilters());
+                document.getElementById('clearArchiveBtn').addEventListener('click', () => this.openConfirmationModal('clear-archive', null));
+
+                const modals = ['medicineModal', 'deleteModal', 'filterModal', 'adminPasswordModal'];
+                modals.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.addEventListener('click', (e) => {
+                        if (e.target === el) el.classList.add('hidden');
+                    });
+                });
+            }
+
+            renderInventoryTable(filteredData = null) {
+                const tableBody = document.getElementById('inventoryTableBody');
+                const dataToRender = this.inventoryData;
+
+                if (!tableBody) return;
+
+                if (dataToRender.length === 0) {
+                    if (this.currentFilter !== 'all' || this.currentSearch) {
+                        tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-subtext-light">No items match your filter.</td></tr>`;
+                    } else {
+                        tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-subtext-light">No active inventory found.</td></tr>`;
+                    }
+                    return;
+                }
+
+                tableBody.innerHTML = dataToRender.map(item => {
+                    const medicine = item.medicine;
+                    if (!medicine) return '';
+
+                    const supplierName = medicine.supplier? medicine.supplier.name : 'N/A';
+                    let statusText = "In Stock";
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    if (item.expiryDate && new Date(item.expiryDate) < today) {
+                        statusText = "Expired";
+                    } else if (item.quantity === 0) {
+                        statusText = "Out of Stock";
+                    } else if (item.quantity <= item.minStockLevel) {
+                        statusText = "Low Stock";
+                    }
+
+                    return `<tr class="border-b border-border-light dark:border-border-dark hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td class="px-6 py-4 font-medium whitespace-nowrap text-text-light dark:text-text-dark">${medicine.name}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${item.batchNumber || 'N/A'}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${item.quantity}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${this.formatDate(item.expiryDate)}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${supplierName}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">₱${item.sellingPrice.toFixed(2)}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 text-xs font-medium rounded-full ${this.getStatusClass(item, statusText)}">${statusText}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-center gap-2">
+                                <button class="action-btn edit-btn" onclick="inventoryManager.openMedicineModal('${item._id}')">
+                                    <span class="material-icons text-sm">edit</span> Edit
+                                </button>
+                                <button class="action-btn archive-btn" onclick="inventoryManager.openConfirmationModal('archive', '${item._id}')">
+                                    <span class="material-icons text-sm">archive</span> Archive
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+
+            renderArchiveTable(filteredData = null) {
+                const tableBody = document.getElementById('archiveTableBody');
+                const dataToRender = filteredData || this.archiveData;
+
+                if (!tableBody) return;
+
+                if (dataToRender.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-subtext-light">The archive is empty.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = dataToRender.map(item => {
+                    const medicine = item.medicine;
+                    if (!medicine) return '';
+
+                    const supplierName = medicine.supplier ? medicine.supplier.name : 'N/A';
+
+                    return `<tr class="border-b border-border-light dark:border-border-dark hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td class="px-6 py-4 font-medium whitespace-nowrap text-text-light dark:text-text-dark">${medicine.name}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${item.batchNumber || 'N/A'}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${item.quantity}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${this.formatDate(item.expiryDate)}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${supplierName}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">₱${item.sellingPrice.toFixed(2)}</td>
+                        <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${this.formatDate(item.updatedAt)}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-center gap-2">
+                                <button class="action-btn restore-btn" onclick="inventoryManager.openConfirmationModal('restore', '${item._id}')">
+                                    <span class="material-icons text-sm">restore</span> Restore
+                                </button>
+                                <button class="action-btn delete-btn" onclick="inventoryManager.openConfirmationModal('delete', '${item._id}')">
+                                    <span class="material-icons text-sm">delete_forever</span> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+
+            updateAlerts() {
+                const thirtyDaysFromNow = new Date();
+                thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+                const lowStockItems = this.inventoryData.filter(item => item.quantity <= item.minStockLevel && item.quantity > 0);
+                const outOfStockItems = this.inventoryData.filter(item => item.quantity === 0);
+                const expiringItems = this.inventoryData.filter(item => {
+                    if (!item.expiryDate) return false;
+                    const expiryDate = new Date(item.expiryDate);
+                    return expiryDate <= thirtyDaysFromNow && expiryDate > new Date();
+                });
+
+                const lowStockList = document.getElementById('lowStockAlerts');
+                if (lowStockList) {
+                    const lowStockAlerts = lowStockItems.map(item => `<li>${item.medicine.name} - Batch: ${item.batchNumber} (${item.quantity} units)</li>`);
+                    const outOfStockAlerts = outOfStockItems.map(item => `<li>${item.medicine.name} - Batch: ${item.batchNumber} (0 units)</li>`);
+                    const allAlerts = [...lowStockAlerts, ...outOfStockAlerts];
+                    lowStockList.innerHTML = allAlerts.length > 0 ? allAlerts.join('') : '<li>No low stock alerts</li>';
+                }
+
+                const expiryList = document.getElementById('expiryAlerts');
+                if (expiryList) {
+                    const alerts = expiringItems.map(item => `<li>${item.medicine.name} - Batch: ${item.batchNumber} (Expires: ${this.formatDate(item.expiryDate)})</li>`);
+                    expiryList.innerHTML = alerts.length > 0 ? alerts.join('') : '<li>No expiry alerts</li>';
+                }
+            }
+
+            handleSearch(event, type = 'inventory') {
+                const searchTerm = event.target.value;
+                if (type === 'inventory') {
+                    this.currentSearch = searchTerm;
+                    this.fetchInventory();
+                } else {
+                    const filteredData = this.archiveData.filter(item =>
+                        item.medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (item.batchNumber && item.batchNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                        (item.medicine.supplier && item.medicine.supplier.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                    );
+                    this.renderArchiveTable(filteredData);
+                }
+            }
+
+            openFilterModal() {
+                document.querySelector(`input[name="filterStatus"][value="${this.currentFilter}"]`).checked = true;
+                document.getElementById('filterModal').classList.remove('hidden');
+            }
+
+            closeFilterModal() {
+                document.getElementById('filterModal').classList.add('hidden');
+            }
+
+            applyFilters() {
+                this.currentFilter = document.querySelector('input[name="filterStatus"]:checked').value;
+                this.fetchInventory();
+                this.closeFilterModal();
+            }
+
+            clearFilters() {
+                this.currentFilter = 'all';
+                document.querySelector(`input[name="filterStatus"][value="all"]`).checked = true;
+                this.fetchInventory();
+                this.closeFilterModal();
+            }
+
+            openConfirmationModal(type, id) {
+                const modal = document.getElementById('deleteModal');
+                const message = document.getElementById('deleteMessage');
+                const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+                this.currentAction = { type, id };
+
+                let item;
+                if (type === 'archive') {
+                    item = this.inventoryData.find(i => i._id === id);
+                    if (!item) return;
+                    message.textContent = `Are you sure you want to archive "${item.medicine.name}" (Batch: ${item.batchNumber})?`;
+                    confirmBtn.className = "flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90";
+                    confirmBtn.innerHTML = "Archive";
+                } else if (type === 'restore') {
+                    item = this.archiveData.find(i => i._id === id);
+                    if (!item) return;
+                    message.textContent = `Are you sure you want to restore "${item.medicine.name}" (Batch: ${item.batchNumber})?`;
+                    confirmBtn.className = "flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90";
+                    confirmBtn.innerHTML = "Restore";
+                } else if (type === 'delete') {
+                    item = this.archiveData.find(i => i._id === id);
+                    if (!item) return;
+                    message.textContent = `Are you sure you want to PERMANENTLY delete "${item.medicine.name}"? This cannot be undone.`;
+                    confirmBtn.className = "flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90";
+                    confirmBtn.innerHTML = "Delete";
+                } else if (type === 'clear-archive') {
+                    message.textContent = `Are you sure you want to PERMANENTLY delete ALL ${this.archiveData.length} items in the archive? This cannot be undone.`;
+                    confirmBtn.className = "flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90";
+                    confirmBtn.innerHTML = "Clear Archive";
+                }
+
+                modal.classList.remove('hidden');
+            }
+
+            closeDeleteModal() {
+                document.getElementById('deleteModal').classList.add('hidden');
+                this.currentAction = { type: null, id: null };
+            }
+
+            async openMedicineModal(medicineId = null) {
+                const modal = document.getElementById('medicineModal');
+                const form = document.getElementById('medicineForm');
+                modal.classList.remove('hidden');
+                form.reset();
+
+                await this.populateMedicineDropdown();
+
+                if (medicineId) {
+                    document.getElementById('modalTitle').textContent = "Edit Stock";
+                    this.currentEditingId = medicineId;
+                    const item = this.inventoryData.find(i => i._id === medicineId);
+                    if (item) {
+                        if(item.medicine) {
+                            const medID = item.medicine._id || item.medicine;
+                            const medName = item.medicine.name || "Unknown";
+                            const medStrength = item.medicine.strength || "";
+                            document.getElementById('medicineSelect').value = medID;
+                            document.getElementById('medicineSearchInput').value = `${medName} (${medStrength})`;
+                        }
+
+                        document.getElementById('batchNumber').value = item.batchNumber;
+                        document.getElementById('quantity').value = item.quantity;
+                        document.getElementById('costPrice').value = item.costPrice;
+                        document.getElementById('sellingPrice').value = item.sellingPrice;
+                        document.getElementById('expiryDate').value = item.expiryDate ? item.expiryDate.split('T')[0] : '';
+                        document.getElementById('minStockLevel').value = item.minStockLevel;
+                    }
+                } else {
+                    document.getElementById('modalTitle').textContent = "Add Stock";
+                    this.currentEditingId = null;
+                    document.getElementById('batchNumber').value = this.generateBatchNumber();
+                    document.getElementById('minStockLevel').value = 10;
+                    document.getElementById('medicineSelect').value = "";
+                    document.getElementById('medicineSearchInput').value = "";
+                    const defaultExpiry = new Date();
+                    defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 1);
+                    document.getElementById('expiryDate').value = defaultExpiry.toISOString().split('T')[0];
+                }
+            }
+
+            closeMedicineModal() {
+                document.getElementById('medicineModal').classList.add('hidden');
+                this.currentEditingId = null;
+            }
+
+            clearArchive() {
+                this.openConfirmationModal('clear-archive', null);
+            }
+
+            switchTab(tab) {
+                this.currentTab = tab;
+                const inventoryTab = document.getElementById('inventoryTab');
+                const archiveTab = document.getElementById('archiveTab');
+
+                if (tab === 'inventory') {
+                    inventoryTab.classList.add('active');
+                    archiveTab.classList.remove('active');
+                    document.getElementById('inventorySection').classList.remove('hidden');
+                    document.getElementById('archiveSection').classList.add('hidden');
+                    document.getElementById('alertsSection').classList.remove('hidden');
+                } else {
+                    inventoryTab.classList.remove('active');
+                    archiveTab.classList.add('active');
+                    document.getElementById('inventorySection').classList.add('hidden');
+                    document.getElementById('archiveSection').classList.remove('hidden');
+                    document.getElementById('alertsSection').classList.add('hidden');
+                }
+            }
+
+            generateBatchNumber() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                return `BCH${year}${month}${random}`;
+            }
+
+            formatDate(dateString) {
+                if (!dateString) return 'N/A';
+                try {
+                    return new Date(dateString).toLocaleDateString('en-PH', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                } catch (error) {
+                    console.error("Date formatting error:", error);
+                    return dateString;
+                }
+            }
+
+            getStatusClass(item, statusText) {
+                if (statusText === "Out of Stock" || statusText === "Expired") {
+                    return "bg-secondary/10 text-secondary dark:bg-secondary/20 dark:text-secondary";
+                } else if (statusText === "Low Stock") {
+                    return "bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning";
+                } else {
+                    return "bg-success/10 text-success dark:bg-success/20 dark:text-success";
+                }
+            }
+
+            showNotification(message, type = "info") {
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[100] transform transition-all duration-300 ${
+                    type === 'success' ? 'bg-success text-white' :
+                    type === 'error' ? 'bg-secondary text-white' :
+                    'bg-primary text-white'
+                }`;
+                notification.innerHTML = `<div class="flex items-center gap-2">
+                    <span class="material-icons">${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info'}</span>
+                    <span>${message}</span>
+                </div>`;
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+
+            async populateMedicineDropdown() {
+                const listContainer = document.getElementById('medicineDropdownList');
+                const searchInput = document.getElementById('medicineSearchInput');
+
+                try {
+                    const medicines = await this.apiCall('GET', '/api/medicines/dropdown', this.getToken());
+                    if (medicines && Array.isArray(medicines)) {
+                        this.cachedMedicines = medicines;
+                        this.renderDropdownOptions(medicines);
+                        this.setupDropdownListeners();
+                    }
+                } catch (error) {
+                    console.error("Dropdown Error:", error);
+                    listContainer.innerHTML = '<div class="p-2 text-sm text-secondary">Error loading list</div>';
+                }
+            }
+
+            renderDropdownOptions(items) {
+                const listContainer = document.getElementById('medicineDropdownList');
+                listContainer.innerHTML = '';
+
+                if (items.length === 0) {
+                    listContainer.innerHTML = '<div class="p-2 text-sm text-subtext-light dark:text-subtext-dark">No matches found</div>';
+                    return;
+                }
+
+                items.forEach(med => {
+                    const div = document.createElement('div');
+                    div.className = 'px-4 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary/10 cursor-pointer transition-colors';
+                    div.textContent = med.label;
+                    div.onclick = () => {
+                        document.getElementById('medicineSelect').value = med.id;
+                        document.getElementById('medicineSearchInput').value = med.label;
+                        listContainer.classList.add('hidden');
+                    };
+                    listContainer.appendChild(div);
+                });
+            }
+
+            setupDropdownListeners() {
+                const searchInput = document.getElementById('medicineSearchInput');
+                const listContainer = document.getElementById('medicineDropdownList');
+
+                searchInput.onfocus = () => listContainer.classList.remove('hidden');
+                searchInput.onblur = () => setTimeout(() => listContainer.classList.add('hidden'), 200);
+                searchInput.oninput = (e) => {
+                    const query = e.target.value.toLowerCase();
+                    const filtered = this.cachedMedicines.filter(m =>
+                        m.label.toLowerCase().includes(query)
+                    );
+                    this.renderDropdownOptions(filtered);
+                    listContainer.classList.remove('hidden');
+                };
+            }
+        }
+
+        let inventoryManager;
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.inventoryManager) {
+                inventoryManager = new EnhancedInventoryManager();
+                window.inventoryManager = inventoryManager;
+            }
+        });
+    </script>
+</body>
+</html>

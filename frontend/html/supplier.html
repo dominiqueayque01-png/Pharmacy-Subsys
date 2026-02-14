@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Well Served - Suppliers</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function(){
+      emailjs.init({
+        publicKey: "qNq97XFzwHnYzOYyf",
+      });
+    })();
+  </script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#005a32",
+            secondary: "#d62828",
+            accent: "#8b5a2b",
+            "background-light": "#f1f5f9",
+            "background-dark": "#0f172a",
+            "surface-light": "#FFFFFF",
+            "surface-dark": "#1F2937",
+            "text-light": "#1F2937",
+            "text-dark": "#F9FAFB",
+            "subtext-light": "#6B7280",
+            "subtext-dark": "#9CA3AF",
+            "border-light": "#E5E7EB",
+            "border-dark": "#374151",
+            "success": "#22C55E",
+            "warning": "#F59E0B",
+            "danger": "#EF4444"
+          },
+          fontFamily: {
+            display: ["Inter", "sans-serif"],
+          },
+          borderRadius: { DEFAULT: "0.5rem" },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 1001;
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+    }
+    .toast.show {
+      transform: translateX(0);
+    }
+    .toast.success {
+      background-color: #22C55E;
+    }
+    .toast.error {
+      background-color: #EF4444;
+    }
+    .toast.info {
+      background-color: #005a32;
+    }
+    
+    .supplier-table tbody tr {
+      height: 72px;
+    }
+    
+    .supplier-table tbody td {
+      vertical-align: middle;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .orders-table tbody tr {
+      height: 72px;
+    }
+    
+    .orders-table tbody td {
+      vertical-align: middle;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+    
+    .loading-spinner {
+      border: 3px solid #f3f3f2;
+      border-top: 3px solid #005a32;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .medicine-dropdown {
+      position: relative;
+    }
+    
+    .medicine-dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: white;
+      min-width: 300px;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1002;
+      border-radius: 8px;
+      padding: 8px 0;
+      top: 100%;
+      left: 0;
+      right: 0;
+    }
+    
+    .dark .medicine-dropdown-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    
+    .medicine-dropdown-content.active {
+      display: block;
+    }
+    
+    .medicine-option {
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .medicine-option:hover {
+      background-color: #f1f1f1;
+    }
+    
+    .dark .medicine-option:hover {
+      background-color: #374151;
+    }
+    
+    .stock-high {
+      background-color: #DCFCE7;
+      color: #166534;
+    }
+    
+    .stock-medium {
+      background-color: #FEF9C3;
+      color: #854D0E;
+    }
+    
+    .stock-low {
+      background-color: #FEE2E2;
+      color: #991B1B;
+    }
+    
+    .supplier-dropdown {
+      position: relative;
+    }
+    
+    .supplier-dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: white;
+      min-width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow: 0px 8px-16px 0px rgba(0,0,0,0.2);
+      z-index: 1002;
+      border-radius: 8px;
+      padding: 8px 0;
+      top: 100%;
+      left: 0;
+      right: 0;
+    }
+    
+    .dark .supplier-dropdown-content {
+      background-color: #1F2937;
+      color: #F9FAFB;
+    }
+    
+    .supplier-dropdown-content.active {
+      display: block;
+    }
+    
+    .supplier-option {
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .supplier-option:hover {
+      background-color: #f1f1f1;
+    }
+    
+    .dark .supplier-option:hover {
+      background-color: #374151;
+    }
+
+    .low-stock-badge {
+      background-color: #FEE2E2;
+      color: #991B1B;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .tab-button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .tab-button.active {
+      background-color: #005a32;
+      color: white;
+    }
+    
+    .blocklist-badge {
+      background-color: #EF4444;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+    
+    .failed-delivery-badge {
+      background-color: #F59E0B;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+  <div class="flex h-screen">
+    <!-- Sidebar with Well Served branding -->
+    <aside class="w-64 bg-surface-light dark:bg-surface-dark flex flex-col border-r border-border-light dark:border-border-dark">
+        <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg border border-slate-100 dark:border-slate-700 shadow-sm">
+                    WS
+                </div>
+                <div>
+                    <h1 class="font-bold text-primary dark:text-green-400 leading-tight">Well Served</h1>
+                    <p class="text-[10px] uppercase tracking-wider text-accent dark:text-amber-600 font-semibold">Since 1994</p>
+                </div>
+            </div>
+        </div>
+      <nav class="flex-1 px-4 py-6 space-y-2">
+        <div class="px-2 text-sm font-semibold text-subtext-light dark:text-subtext-dark">Pharmacy</div>
+        <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="dashboard.html">
+          <span class="material-icons mr-3">dashboard</span> Dashboard
+        </a>
+        <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="inventory.html">
+          <span class="material-icons mr-3">inventory_2</span> Inventory
+        </a>
+        <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="patient_records.html">
+          <span class="material-icons mr-3">folder_shared</span> Patient Records
+        </a>
+        <a class="flex items-center px-4 py-2 bg-primary/10 text-primary rounded-md font-semibold" href="supplier.html">
+          <span class="material-icons mr-3">local_shipping</span> Suppliers
+        </a>
+        <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="billing.html">
+          <span class="material-icons mr-3">point_of_sale</span> Sales &amp; Billing
+        </a>
+      </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <header class="h-16 bg-surface-light dark:bg-surface-dark flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-2">
+          <button onclick="confirmBackToHMS(event)" class="flex items-center gap-1 text-sm text-subtext-light hover:text-primary">
+            <span class="material-icons">arrow_back_ios_new</span> Back to IHMS
+          </button>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-subtext-light dark:text-subtext-dark">search</span>
+            <input 
+              id="globalSearch"
+              class="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-primary text-text-light dark:text-text-dark" 
+              placeholder="Search medicines, orders..." 
+              type="text"
+            />
+          </div>
+
+          <button onclick="showNotifications()" class="relative text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
+            <span class="material-icons">notifications</span>
+            <span id="notificationBadge" class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-secondary text-white text-xs flex items-center justify-center">0</span>
+          </button>
+          
+          <button onclick="logoutUser()" 
+            class="flex items-center gap-1 bg-primary text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
+            <span class="material-icons text-sm">logout</span>
+            Logout
+          </button>
+          
+          <div class="flex items-center gap-2">
+            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">PH</div>
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
+        <div class="max-w-full mx-auto">
+          <h1 class="text-2xl md:text-3xl font-bold text-text-light dark:text-text-dark">Supplier Management</h1>
+          <p class="mt-1 text-sm md:text-base text-subtext-light dark:text-subtext-dark">Manage suppliers and track medicine orders</p>
+
+          <!-- Low Stock Alert Banner -->
+          <div id="lowStockAlert" class="mt-6 bg-warning/10 border border-warning/30 rounded-xl p-4 hidden">
+            <div class="flex items-start gap-3">
+              <span class="material-icons text-warning text-2xl">warning</span>
+              <div class="flex-1">
+                <h3 class="font-semibold text-text-light dark:text-text-dark">Low Stock Medicines</h3>
+                <p class="text-sm text-subtext-light dark:text-subtext-dark mt-1">The following medicines are running low on stock. Click to order:</p>
+                <div id="lowStockList" class="mt-3 space-y-2"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-6 md:mt-8">
+            <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">ACTIVE SUPPLIERS</p>
+                  <p id="activeSuppliers" class="text-4xl font-bold text-text-light dark:text-text-dark">8</p>
+                </div>
+                <div class="p-3 bg-success/10 rounded-lg">
+                  <span class="material-icons text-success" style="font-size: 28px;">store</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">PENDING ORDERS</p>
+                  <p id="pendingOrders" class="text-4xl font-bold text-text-light dark:text-text-dark">0</p>
+                </div>
+                <div class="p-3 bg-warning/10 rounded-lg">
+                  <span class="material-icons text-warning" style="font-size: 28px;">shopping_cart</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">DELIVERED ORDERS</p>
+                  <p id="deliveredOrders" class="text-4xl font-bold text-text-light dark:text-text-dark">0</p>
+                </div>
+                <div class="p-3 bg-primary/10 rounded-lg">
+                  <span class="material-icons text-primary" style="font-size: 28px;">check_circle</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">BLOCKED SUPPLIERS</p>
+                  <p id="blockedSuppliers" class="text-4xl font-bold text-text-light dark:text-text-dark">0</p>
+                </div>
+                <div class="p-3 bg-secondary/10 rounded-lg">
+                  <span class="material-icons text-secondary" style="font-size: 28px;">block</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Orders History -->
+          <div class="mt-6 md:mt-10 bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800">
+            <div class="p-4 md:p-6 border-b border-border-light dark:border-border-dark">
+              <h2 class="text-lg md:text-xl font-semibold text-text-light dark:text-text-dark">Orders History</h2>
+              <p class="text-xs md:text-sm text-subtext-light dark:text-subtext-dark mt-1">Track and manage all medicine orders from suppliers.</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left min-w-[1000px] orders-table">
+                <thead class="bg-gradient-to-r from-primary/20 via-background-light to-secondary/20 dark:from-primary/30 dark:via-background-dark dark:to-secondary/30 text-xs text-text-light dark:text-text-dark uppercase">
+                  <tr>
+                    <th class="px-4 md:px-6 py-3 font-bold" scope="col">Order ID</th>
+                    <th class="px-4 md:px-6 py-3 font-semibold" scope="col">Medicine</th>
+                    <th class="px-4 md:px-6 py-3 font-semibold" scope="col">Quantity</th>
+                    <th class="px-4 md:px-6 py-3 font-semibold" scope="col">Price / Total Value</th>
+                    <th class="px-4 md:px-6 py-3 font-semibold" scope="col">Supplier</th>
+                    <th class="px-4 md:px-6 py-3 font-semibold" scope="col">Expected Delivery</th>
+                    <th class="px-4 md:px-6 py-3 font-semibold" scope="col">Status</th>
+                    <th class="px-4 md:px-6 py-3 text-center font-semibold" scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersTableBody" class="divide-y divide-border-light dark:divide-border-dark">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Active Supplier Directory -->
+          <div id="activeSuppliersSection" class="mt-6 md:mt-10 bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800">
+            <div class="p-4 md:p-6 border-b border-border-light dark:border-border-dark flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <h2 class="text-lg md:text-xl font-semibold text-text-light dark:text-text-dark">Active Supplier Directory</h2>
+                <p class="text-xs md:text-sm text-subtext-light dark:text-subtext-dark mt-1">View suppliers and place medicine orders.</p>
+              </div>
+              <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
+                <div class="relative w-full md:w-48 lg:w-64">
+                  <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-subtext-light dark:text-subtext-dark">search</span>
+                  <input id="supplierSearch" class="w-full pl-10 pr-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" placeholder="Search suppliers..." type="text"/>
+                </div>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left min-w-[800px] supplier-table">
+                <thead class="bg-background-light dark:bg-background-dark text-xs text-subtext-light dark:text-subtext-dark uppercase">
+                  <tr>
+                    <th class="px-4 md:px-6 py-3" scope="col">Supplier Name</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Contact Person</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Email / Phone</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Reliability Rating</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Failed Deliveries</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Last Delivery</th>
+                  </tr>
+                </thead>
+                <tbody id="supplierTableBody" class="divide-y divide-border-light dark:divide-border-dark">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Blocklist Section -->
+          <div id="blocklistSection" class="mt-6 md:mt-10 bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 hidden">
+            <div class="p-4 md:p-6 border-b border-border-light dark:border-border-dark">
+              <h2 class="text-lg md:text-xl font-semibold text-text-light dark:text-text-dark">Blocked Suppliers</h2>
+              <p class="text-xs md:text-sm text-subtext-light dark:text-subtext-dark mt-1">Suppliers with 3 or more failed deliveries are automatically blocked.</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left min-w-[800px] supplier-table">
+                <thead class="bg-background-light dark:bg-background-dark text-xs text-subtext-light dark:text-subtext-dark uppercase">
+                  <tr>
+                    <th class="px-4 md:px-6 py-3" scope="col">Supplier Name</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Contact Person</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Email / Phone</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Failed Deliveries</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Last Delivery</th>
+                    <th class="px-4 md:px-6 py-3" scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="blocklistTableBody" class="divide-y divide-border-light dark:divide-border-dark">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toastContainer"></div>
+
+  <!-- Order Medicine Modal -->
+  <div id="orderModal" class="modal">
+    <div class="modal-content bg-surface-light dark:bg-surface-dark rounded-xl shadow-lg p-4 md:p-6">
+      <div class="flex justify-between items-center mb-4 md:mb-6">
+        <h3 class="text-lg md:text-xl font-semibold text-text-light dark:text-text-dark">Order Medicine</h3>
+        <button id="closeOrderModalBtn" class="text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <form id="orderForm" class="space-y-4">
+        <div>
+          <label for="orderSupplier" class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1">Select Supplier</label>
+          <select id="orderSupplier" class="w-full px-3 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" required>
+            <option value="">Select a supplier</option>
+          </select>
+        </div>
+        
+        <div class="medicine-dropdown">
+          <label for="medicineName" class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1">Medicine Name</label>
+          <div class="relative">
+            <input type="text" id="medicineName" class="w-full px-3 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" placeholder="Search or select medicine" required>
+            <span class="material-icons absolute right-3 top-1/2 -translate-y-1/2 text-subtext-light dark:text-subtext-dark cursor-pointer" id="medicineDropdownToggle">arrow_drop_down</span>
+          </div>
+          <div id="medicineDropdown" class="medicine-dropdown-content">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="quantity" class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1">Quantity</label>
+            <input type="number" id="quantity" min="1" class="w-full px-3 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" required>
+          </div>
+          <div>
+            <label for="unitPrice" class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1">Unit Price (₱)</label>
+            <input type="number" id="unitPrice" min="0" step="0.01" class="w-full px-3 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" required>
+          </div>
+        </div>
+        <div>
+          <label for="totalPrice" class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1">Total Price (₱)</label>
+          <input type="text" id="totalPrice" class="w-full px-3 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" readonly>
+        </div>
+        <div>
+          <label for="deliveryDate" class="block text-sm font-medium text-subtext-light dark:text-subtext-dark mb-1">Expected Delivery Date</label>
+          <input type="date" id="deliveryDate" class="w-full px-3 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" required>
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" id="cancelOrderBtn" class="px-4 py-2 text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark transition-colors">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-colors">Place Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delivery Confirmation Modal -->
+  <div id="deliveryModal" class="modal">
+    <div class="modal-content bg-surface-light dark:bg-surface-dark rounded-xl shadow-lg p-4 md:p-6 max-w-md">
+      <div class="flex justify-between items-center mb-4 md:mb-6">
+        <h3 class="text-lg md:text-xl font-semibold text-text-light dark:text-text-dark">Confirm Delivery Received</h3>
+        <button id="closeDeliveryModalBtn" class="text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <p class="text-subtext-light dark:text-subtext-dark">Are you sure you want to mark this order as delivered?</p>
+        
+        <div class="bg-background-light dark:bg-background-dark p-4 rounded-lg border border-border-light dark:border-border-dark">
+          <div class="font-medium text-text-light dark:text-text-dark" id="deliveryMedicineName">Medicine Name</div>
+          <div class="text-sm text-subtext-light dark:text-subtext-dark mt-2">
+            <div>Order ID: <span id="deliveryOrderId">ORD001</span></div>
+            <div>Quantity: <span id="deliveryQuantity">100 units</span></div>
+            <div>Supplier: <span id="deliverySupplier">Supplier Name</span></div>
+          </div>
+        </div>
+        
+        <p class="text-sm text-subtext-light dark:text-subtext-dark">This will automatically add <span id="deliveryQuantityText">100</span> units to your inventory.</p>
+        
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" id="cancelDeliveryBtn" class="px-4 py-2 text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark transition-colors">Cancel</button>
+          <button type="button" id="confirmDeliveryBtn" class="px-4 py-2 bg-success hover:bg-success/90 text-white font-semibold rounded-lg transition-colors">Confirm Delivery</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revise Order Modal -->
+  <div id="reviseModal" class="modal">
+    <div class="modal-content bg-surface-light dark:bg-surface-dark rounded-xl shadow-lg p-4 md:p-6">
+      <div class="flex justify-between items-center mb-4 md:mb-6">
+        <h3 class="text-lg md:text-xl font-semibold text-text-light dark:text-text-dark">Revise Order</h3>
+        <button id="closeReviseModalBtn" class="text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <!-- Order Details Header -->
+      <div class="bg-background-light dark:bg-background-dark p-4 rounded-lg border border-border-light dark:border-border-dark mb-6">
+        <h4 class="text-lg font-semibold text-text-light dark:text-text-dark mb-2">Order Details</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <div class="text-subtext-light dark:text-subtext-dark">Supplier</div>
+            <div class="font-medium text-text-light dark:text-text-dark" id="reviseSupplier">Global Supplies Inc.</div>
+          </div>
+          <div>
+            <div class="text-subtext-light dark:text-subtext-dark">Order Date</div>
+            <div class="font-medium text-text-light dark:text-text-dark" id="reviseOrderDate">Oct 15, 2023</div>
+          </div>
+          <div>
+            <div class="text-subtext-light dark:text-subtext-dark">Delivery Date</div>
+            <div class="font-medium text-text-light dark:text-text-dark" id="reviseDeliveryDate">Oct 22, 2023</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Confirmation Date -->
+      <div class="mb-6">
+        <h4 class="text-md font-semibold text-text-light dark:text-text-dark mb-2">Confirmation Date</h4>
+        <div class="text-text-light dark:text-text-dark" id="reviseConfirmationDate">October 23, 2023</div>
+      </div>
+      
+      <hr class="border-border-light dark:border-border-dark mb-6">
+      
+      <!-- Order Items Table -->
+      <div class="mb-6">
+        <h4 class="text-md font-semibold text-text-light dark:text-text-dark mb-4">Order Items</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="bg-background-light dark:bg-background-dark text-xs text-subtext-light dark:text-subtext-dark uppercase">
+              <tr>
+                <th class="px-4 py-3" scope="col">Product</th>
+                <th class="px-4 py-3" scope="col">Expected Qty</th>
+                <th class="px-4 py-3" scope="col">Received Qty</th>
+                <th class="px-4 py-3" scope="col">Discrepancy</th>
+              </tr>
+            </thead>
+            <tbody id="reviseItemsTableBody" class="divide-y divide-border-light dark:divide-border-dark">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Supplier Contact Information -->
+      <div class="mb-6">
+        <h4 class="text-md font-semibold text-text-light dark:text-text-dark mb-2">Supplier Contact Information</h4>
+        <div class="bg-background-light dark:bg-background-dark p-4 rounded-lg border border-border-light dark:border-border-dark">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <div class="text-subtext-light dark:text-subtext-dark">Contact Person</div>
+              <div class="font-medium text-text-light dark:text-text-dark" id="reviseContactPerson">John Anderson</div>
+            </div>
+            <div>
+              <div class="text-subtext-light dark:text-subtext-dark">Email</div>
+              <div class="font-medium text-text-light dark:text-text-dark" id="reviseSupplierEmail">orders@medcorp.com</div>
+            </div>
+            <div>
+              <div class="text-subtext-light dark:text-subtext-dark">Phone</div>
+              <div class="font-medium text-text-light dark:text-text-dark" id="reviseSupplierPhone">+1 (555) 123-4567</div>
+            </div>
+            <div>
+              <div class="text-subtext-light dark:text-subtext-dark">Address</div>
+              <div class="font-medium text-text-light dark:text-text-dark" id="reviseSupplierAddress">123 Medical Ave, Health City</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Notes/Comments -->
+      <div class="mb-6">
+        <h4 class="text-md font-semibold text-text-light dark:text-text-dark mb-2">Notes / Comments</h4>
+        <textarea 
+          id="reviseNotes" 
+          class="w-full px-3 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" 
+          rows="3" 
+          placeholder="e.g., Box was damaged, two mice missing, one extra monitor delivered by mistake..."
+        ></textarea>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3 pt-4">
+        <button type="button" id="cancelReviseBtn" class="px-4 py-2 text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark transition-colors">Cancel</button>
+        <button type="button" id="confirmReviseBtn" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-colors">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-lg shadow-lg flex flex-col items-center">
+      <div class="loading-spinner mb-4"></div>
+      <p class="text-text-light dark:text-text-dark">Processing...</p>
+    </div>
+  </div>
+
+<script>
+// --- CONFIGURATION ---
+const API_BASE_URL = 'http://localhost:5001'; 
+
+class SupplierManager {
+    constructor() {
+        this.suppliers = [];
+        this.orders = [];
+        this.init();
+    }
+
+    async init() {
+        console.log("Supplier Manager Initialized");
+        
+        if (this.getToken()) {
+            await this.fetchSuppliers();
+            await this.fetchOrders();
+        } else {
+            console.warn("No auth token found.");
+        }
+        
+        this.renderSuppliers();
+        this.renderOrders();
+        this.updateStats();
+        this.populateSupplierDropdown();
+    }
+
+    getToken() {
+        const directToken = sessionStorage.getItem('token');
+        if (directToken) return directToken;
+        const userInfoString = sessionStorage.getItem('userInfo');
+        if (userInfoString) {
+            try {
+                return JSON.parse(userInfoString).token || JSON.parse(userInfoString).access_token;
+            } catch (e) { console.error(e); }
+        }
+        return null;
+    }
+
+    logoutUser() {
+        sessionStorage.removeItem('userInfo');
+        sessionStorage.removeItem('token');
+        window.location.href = 'login.html';
+    }
+
+    async apiCall(endpoint, method = 'GET', body = null) {
+        const token = this.getToken();
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        };
+        if (body) options.body = JSON.stringify(body);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'API Error');
+            return data;
+        } catch (error) {
+            console.error("API Error:", error);
+            return null;
+        }
+    }
+
+    async fetchSuppliers() {
+        const data = await this.apiCall('/api/suppliers');
+        if (data) {
+            this.suppliers = Array.isArray(data) ? data : (data.suppliers || []);
+        }
+    }
+
+    async fetchOrders() {
+        const data = await this.apiCall('/api/orders');
+        if (data) {
+            this.orders = Array.isArray(data) ? data : (data.orders || []);
+        }
+    }
+
+    renderSuppliers() {
+        const tbody = document.getElementById('supplierTableBody');
+        const searchInput = document.getElementById('supplierSearch');
+        
+        const search = searchInput ? searchInput.value.toLowerCase() : '';
+        
+        tbody.innerHTML = '';
+
+        const activeSuppliers = this.suppliers.filter(s => {
+            const name = (s.name || "").toLowerCase();
+            const contact = (s.contactPerson || "").toLowerCase();
+            const email = (s.email || "").toLowerCase();
+            
+            return !s.isBlocked && (
+                name.includes(search) || 
+                contact.includes(search) ||
+                email.includes(search)
+            );
+        });
+
+        if (activeSuppliers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-subtext-light dark:text-subtext-dark">No active suppliers found.</td></tr>`;
+            return;
+        }
+
+        activeSuppliers.forEach(s => {
+            const stars = this.renderStars(s.reliabilityRating || 5);
+            const failedCount = s.failedDeliveries || 0;
+            const failedClass = failedCount >= 2 ? 'text-secondary font-bold' : 'text-subtext-light dark:text-subtext-dark';
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td class="px-6 py-4 font-medium text-text-light dark:text-text-dark">
+                        ${s.name || "Unknown Name"}
+                    </td>
+                    <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${s.contactPerson || "N/A"}</td>
+                    <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">
+                        <div class="text-xs">${s.email || "No Email"}</div>
+                        <div class="text-xs">${s.phone || "No Phone"}</div>
+                    </td>
+                    <td class="px-6 py-4 text-warning flex gap-1">${stars}</td>
+                    <td class="px-6 py-4 text-center ${failedClass}">${failedCount}</td>
+                    <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${this.formatDate(s.updatedAt)}</td>
+                </tr>
+            `;
+        });
+        
+        this.populateSupplierDropdown();
+    }
+
+    renderOrders() {
+        const tbody = document.getElementById('ordersTableBody');
+        tbody.innerHTML = '';
+
+        if (this.orders.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-subtext-light dark:text-subtext-dark">No order history found.</td></tr>`;
+            return;
+        }
+
+        const sortedOrders = [...this.orders].sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+
+        sortedOrders.forEach(order => {
+            let statusClass = 'bg-warning/10 text-warning';
+            if (order.status === 'Delivered') statusClass = 'bg-success/10 text-success';
+
+            const supplierName = order.supplier ? order.supplier.name : (order.supplierName || "Unknown");
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td class="px-6 py-4 font-medium text-text-light dark:text-text-dark">${(order._id || 'ORD').substring(0,8).toUpperCase()}</td>
+                    <td class="px-6 py-4 text-text-light dark:text-text-dark">${order.medicineName || "Medicine"}</td>
+                    <td class="px-6 py-4 text-text-light dark:text-text-dark">${order.quantity}</td>
+                    <td class="px-6 py-4 text-text-light dark:text-text-dark">₱${(order.totalPrice || 0).toLocaleString()}</td>
+                    <td class="px-6 py-4 text-text-light dark:text-text-dark">${supplierName}</td>
+                    <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${this.formatDate(order.expectedDelivery)}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 rounded text-xs font-bold ${statusClass}">${(order.status || 'Pending').toUpperCase()}</span></td>
+                    <td class="px-6 py-4 text-center">
+                        ${order.status === 'Pending' ? `
+                            <button onclick="supplierManager.updateOrderStatus('${order._id}', 'Delivered')" class="text-success hover:underline text-xs mr-2">Receive</button>
+                        ` : '-'}
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    async placeOrder(formData) {
+        const supplierSelect = document.getElementById('orderSupplier');
+        const supplierName = supplierSelect.options[supplierSelect.selectedIndex].text;
+        
+        const orderData = {
+            supplier: formData.get('orderSupplier'),
+            supplierName: supplierName,
+            medicineName: document.getElementById('medicineName').value,
+            quantity: parseInt(document.getElementById('quantity').value),
+            unitPrice: parseFloat(document.getElementById('unitPrice').value),
+            totalPrice: parseFloat(document.getElementById('totalPrice').value),
+            expectedDelivery: document.getElementById('deliveryDate').value,
+            status: 'Pending'
+        };
+
+        const result = await this.apiCall('/api/orders', 'POST', orderData);
+        if(result) {
+            Swal.fire('Success', 'Order placed successfully!', 'success');
+            this.fetchOrders();
+            document.getElementById('orderModal').classList.remove('active');
+        }
+    }
+
+    async updateOrderStatus(orderId, newStatus) {
+        const result = await this.apiCall(`/api/orders/${orderId}`, 'PUT', { status: newStatus });
+        if(result) {
+            Swal.fire('Updated', `Order marked as ${newStatus}`, 'success');
+            this.fetchOrders();
+        }
+    }
+
+    populateSupplierDropdown() {
+        const select = document.getElementById('orderSupplier');
+        if(!select) return;
+        select.innerHTML = '<option value="">Select a Supplier</option>';
+        this.suppliers.forEach(s => {
+            select.innerHTML += `<option value="${s._id}">${s.name}</option>`;
+        });
+    }
+
+    renderStars(rating) {
+        return '<span class="material-icons text-xs">star</span>'.repeat(5);
+    }
+    
+    formatDate(dateStr) {
+        if(!dateStr) return '-';
+        return new Date(dateStr).toLocaleDateString();
+    }
+    
+    updateStats() {
+        document.getElementById('activeSuppliers').textContent = this.suppliers.length;
+        document.getElementById('pendingOrders').textContent = this.orders.filter(o => o.status === 'Pending').length;
+        document.getElementById('deliveredOrders').textContent = this.orders.filter(o => o.status === 'Delivered').length;
+    }
+    
+    handleSupplierSearch() { this.renderSuppliers(); }
+    openOrderModal() { document.getElementById('orderModal').classList.add('active'); }
+    closeOrderModal() { document.getElementById('orderModal').classList.remove('active'); }
+}
+
+let supplierManager;
+
+function confirmBackToHMS(event) {
+    event.preventDefault();
+    Swal.fire({
+        title: "Leave Supplier Management?",
+        text: "Return to Integrated Healthcare Management System?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#005a32",
+        confirmButtonText: "Yes, go back"
+    });
+}
+
+function logoutUser() {
+    Swal.fire({
+        title: "Logout?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#005a32",
+        confirmButtonText: "Yes, logout"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            supplierManager.logoutUser();
+        }
+    });
+}
+
+function showNotifications() {
+    Swal.fire({
+        title: 'Notifications',
+        html: `
+            <div class="text-left space-y-3">
+                <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200">
+                    <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">Low Stock Alert</p>
+                    <p class="text-xs text-yellow-600">Some medicines running low</p>
+                </div>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true,
+        width: 450
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    supplierManager = new SupplierManager();
+    
+    window.supplierManager = supplierManager;
+    
+    const form = document.getElementById('orderForm');
+    if(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            formData.append('orderSupplier', document.getElementById('orderSupplier').value);
+            supplierManager.placeOrder(formData);
+        });
+    }
+    
+    const qty = document.getElementById('quantity');
+    const price = document.getElementById('unitPrice');
+    const total = document.getElementById('totalPrice');
+    const calc = () => { total.value = ((parseFloat(qty.value)||0) * (parseFloat(price.value)||0)).toFixed(2); };
+    if(qty && price) { 
+        qty.addEventListener('input', calc); 
+        price.addEventListener('input', calc); 
+    }
+
+    const closeOrderBtn = document.getElementById('closeOrderModalBtn');
+    const cancelOrderBtn = document.getElementById('cancelOrderBtn');
+    if(closeOrderBtn) closeOrderBtn.addEventListener('click', () => supplierManager.closeOrderModal());
+    if(cancelOrderBtn) cancelOrderBtn.addEventListener('click', () => supplierManager.closeOrderModal());
+
+    const supplierSearch = document.getElementById('supplierSearch');
+    if(supplierSearch) supplierSearch.addEventListener('input', () => supplierManager.handleSupplierSearch());
+});
+</script>
+</body>
+</html>

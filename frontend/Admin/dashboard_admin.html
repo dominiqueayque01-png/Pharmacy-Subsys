@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>PharmaCare Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#005a32",
+                        secondary: "#d62828",
+                        accent: "#8b5a2b",
+                        "background-light": "#f1f5f9",
+                        "background-dark": "#0f172a",
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1F2937",
+                        "text-light": "#1F2937",
+                        "text-dark": "#F9FAFB",
+                        "subtext-light": "#6B7280",
+                        "subtext-dark": "#9CA3AF",
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#374151",
+                        "success": "#22C55E",
+                        "warning": "#F59E0B",
+                        "danger": "#EF4444"
+                    },
+                    fontFamily: { display: ["Inter", "sans-serif"] },
+                    borderRadius: { DEFAULT: "0.5rem" },
+                },
+            },
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hidden { display: none !important; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .refreshing { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+<div class="flex h-screen">
+    <aside class="w-64 bg-surface-light dark:bg-surface-dark flex flex-col border-r border-border-light dark:border-border-dark">
+            <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark">
+                 <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg border border-slate-100 dark:border-slate-700 shadow-sm">
+                    WS
+                </div>
+                <div>
+                    <h1 class="font-bold text-primary dark:text-green-400 leading-tight">Well Served</h1>
+                    <p class="text-[10px] uppercase tracking-wider text-accent dark:text-amber-600 font-semibold">Since 1994</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <div class="px-2 text-sm font-semibold text-subtext-light dark:text-subtext-dark">Admin Panel</div>
+            <a class="flex items-center px-4 py-2 bg-primary/10 text-primary rounded-md font-semibold" href="dashboard_admin.html">
+                <span class="material-icons mr-3">dashboard</span> Dashboard
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="inventory_admin.html">
+                <span class="material-icons mr-3">inventory_2</span> Inventory
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="sales-reports.html">
+                <span class="material-icons mr-3">analytics</span> Sales Reports
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="patient_records.html">
+                <span class="material-icons mr-3">medical_services</span> Patient Records
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="medication_alerts.html">
+                <span class="material-icons mr-3">notifications</span> Medication Alerts
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="user_management.html">
+                <span class="material-icons mr-3">group</span> User Management
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="settings_tab1.html">
+                <span class="material-icons mr-3">settings</span> System Settings
+            </a>
+        </nav>
+    </aside>
+    
+    <main class="flex-1 flex flex-col">
+        <header class="h-16 bg-surface-light dark:bg-surface-dark flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
+            <div class="flex items-center gap-2">
+                <button onclick="window.location.href='../../html/index.html'" class="flex items-center gap-1 text-sm text-subtext-light hover:text-primary">
+                    <span class="material-icons">arrow_back_ios_new</span> Back to IHMS
+                </button>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="logoutUser()" class="flex items-center gap-1 bg-primary text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90">
+                    <span class="material-icons text-sm">logout</span> Logout
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">AD</div>
+                </div>
+            </div>
+        </header>
+        
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-text-light dark:text-text-dark">Analytics Dashboard</h2>
+                <button onclick="fetchDashboardStats()" class="bg-primary hover:bg-primary/90 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2">
+                    <span class="material-icons">refresh</span> Refresh Data
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">TOTAL INVENTORY</p>
+                            <p id="cardTotalMedicines" class="text-4xl font-bold text-text-light dark:text-text-dark">0</p>
+                            <div class="flex items-center mt-2 text-sm text-primary">
+                                <span class="material-icons text-base">inventory_2</span>
+                                <span class="ml-1">Items in Stock</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-primary/10 rounded-lg">
+                            <span class="material-icons text-primary" style="font-size: 28px;">inventory</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">OUT-OF-STOCK</p>
+                            <p id="cardOutOfStock" class="text-4xl font-bold text-text-light dark:text-text-dark">0</p>
+                            <div class="flex items-center mt-2 text-sm text-secondary">
+                                <span class="material-icons text-base">warning</span>
+                                <span class="ml-1" id="cardLowStock">0 low stock</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-secondary/10 rounded-lg">
+                            <span class="material-icons text-secondary" style="font-size: 28px;">error_outline</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">EXPIRING SOON</p>
+                            <p id="cardExpiring" class="text-4xl font-bold text-text-light dark:text-text-dark">0</p>
+                            <div class="flex items-center mt-2 text-sm text-accent">
+                                <span class="material-icons text-base">watch_later</span>
+                                <span class="ml-1">Next 30 days</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-accent/10 rounded-lg">
+                            <span class="material-icons text-accent" style="font-size: 28px;">calendar_today</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">TODAY'S REVENUE</p>
+                            <p id="cardTotalRevenue" class="text-4xl font-bold text-text-light dark:text-text-dark">₱0.00</p>
+                            <div class="flex items-center mt-2 text-sm text-green-600">
+                                <span class="material-icons text-base">trending_up</span>
+                                <span class="ml-1" id="cardTransactions">0 transactions</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                            <span class="material-icons text-green-600" style="font-size: 28px;">payments</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-text-light dark:text-text-dark">Sales Trends</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-text-light dark:text-text-dark">Inventory Levels</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="inventoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-text-light dark:text-text-dark mb-4">Module Summary Reports</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <div class="module-summary bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons text-primary">inventory_2</span>
+                                <h3 class="font-semibold text-text-light dark:text-text-dark">Inventory Summary</h3>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between"><span>Total Items:</span><span id="inventoryTotal" class="font-semibold">0</span></div>
+                            <div class="flex justify-between"><span>Low Stock:</span><span id="inventoryLowStock" class="font-semibold text-accent">0 items</span></div>
+                            <div class="flex justify-between"><span>Expiring:</span><span id="inventoryExpiring" class="font-semibold text-secondary">0 items</span></div>
+                            <div class="flex justify-between"><span class="text-xs text-subtext-light">Updated:</span><span id="inventoryUpdated" class="text-xs">...</span></div>
+                        </div>
+                    </div>
+
+                    <div class="module-summary bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons text-primary">receipt_long</span>
+                                <h3 class="font-semibold text-text-light dark:text-text-dark">Prescriptions Summary</h3>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between"><span>Today's Total:</span><span id="prescriptionsToday" class="font-semibold">0</span></div>
+                            <div class="flex justify-between"><span>Pending:</span><span id="prescriptionsPending" class="font-semibold text-accent">0</span></div>
+                            <div class="flex justify-between"><span>Completed:</span><span id="prescriptionsReady" class="font-semibold text-primary">0</span></div>
+                            <div class="flex justify-between"><span class="text-xs text-subtext-light">Updated:</span><span id="prescriptionsUpdated" class="text-xs">...</span></div>
+                        </div>
+                    </div>
+
+                    <div class="module-summary bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons text-primary">point_of_sale</span>
+                                <h3 class="font-semibold text-text-light dark:text-text-dark">Sales Summary</h3>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between"><span>Revenue:</span><span id="salesRevenue" class="font-semibold">₱0.00</span></div>
+                            <div class="flex justify-between"><span>Transactions:</span><span id="salesTransactions" class="font-semibold">0</span></div>
+                            <div class="flex justify-between"><span>Avg Order:</span><span id="salesAverage" class="font-semibold">₱0</span></div>
+                            <div class="flex justify-between"><span class="text-xs text-subtext-light">Updated:</span><span id="salesUpdated" class="text-xs">...</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </main>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:5001';
+
+    // AUTHENTICATION
+    function getToken() {
+        const userInfo = sessionStorage.getItem('userInfo');
+        return userInfo ? JSON.parse(userInfo).token : null;
+    }
+
+    async function apiCall(endpoint) {
+        const token = getToken();
+        if (!token) {
+            window.location.href = '../../html/login.html';
+            return null;
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.status === 401) {
+                sessionStorage.removeItem('userInfo');
+                window.location.href = '../../html/login.html';
+                return null;
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("API Error:", error);
+            return null;
+        }
+    }
+
+    // MAIN DATA FETCH
+    async function fetchDashboardStats() {
+        const data = await apiCall('/api/dashboard/stats');
+        if (data) {
+            updateDashboardUI(data);
+            
+            // ADD THIS CHECK:
+            if (data.charts) {
+                updateCharts(data.charts);
+            }
+        }
+    }
+
+    function safeSetText(id, value) {
+        const el = document.getElementById(id);
+        if(el) el.textContent = value;
+    }
+
+    function updateDashboardUI(data) {
+        const now = new Date().toLocaleTimeString();
+
+        // 1. Inventory
+        if (data.inventory) {
+            safeSetText('cardTotalMedicines', data.inventory.totalItems.toLocaleString());
+            safeSetText('cardOutOfStock', data.inventory.outOfStock);
+            safeSetText('cardLowStock', `${data.inventory.lowStock} low stock`);
+            safeSetText('cardExpiring', data.inventory.expiringSoon);
+
+            safeSetText('inventoryTotal', data.inventory.totalItems.toLocaleString());
+            safeSetText('inventoryLowStock', `${data.inventory.lowStock} items`);
+            safeSetText('inventoryExpiring', `${data.inventory.expiringSoon} items`);
+            safeSetText('inventoryUpdated', now);
+        }
+
+        // 2. Sales
+        if (data.sales) {
+            const revenue = `₱${(data.sales.todayRevenue || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            safeSetText('cardTotalRevenue', revenue);
+            safeSetText('cardTransactions', `${data.sales.todayTransactions} transactions`);
+            
+            safeSetText('salesRevenue', revenue);
+            safeSetText('salesTransactions', data.sales.todayTransactions);
+            safeSetText('salesAverage', `₱${Math.floor(data.sales.avgTransaction || 0).toLocaleString()}`);
+            safeSetText('salesUpdated', now);
+        }
+
+        // 3. Prescriptions
+        if (data.prescriptions) {
+            safeSetText('prescriptionsToday', data.prescriptions.todayTotal);
+            safeSetText('prescriptionsPending', data.prescriptions.pendingReview);
+            safeSetText('prescriptionsReady', data.prescriptions.readyForPickup);
+            safeSetText('prescriptionsUpdated', now);
+        }
+    }
+
+    function logoutUser() {
+        Swal.fire({
+            title: "Logout?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#005a32",
+            confirmButtonText: "Yes"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                sessionStorage.removeItem('userInfo');
+                sessionStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }
+        });
+    }
+
+
+
+    // INITIALIZATION
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchDashboardStats();
+        setInterval(fetchDashboardStats, 30000);  
+    });
+
+    let salesChartInstance = null;
+    let inventoryChartInstance = null;
+
+    function updateCharts(chartData) {
+        // --- 1. SALES TREND CHART ---
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        
+        if (salesChartInstance) {
+            salesChartInstance.destroy();
+        }
+
+        // Handle empty data case
+        const salesLabels = (chartData.salesTrend && chartData.salesTrend.labels.length > 0) 
+            ? chartData.salesTrend.labels 
+            : ['No Data'];
+        const salesValues = (chartData.salesTrend && chartData.salesTrend.data.length > 0)
+            ? chartData.salesTrend.data
+            : [0];
+
+        salesChartInstance = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: salesLabels,
+                datasets: [{
+                    label: 'Revenue (₱)',
+                    data: salesValues,
+                    borderColor: '#005a32',
+                    backgroundColor: 'rgba(0, 90, 50, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // --- 2. INVENTORY LEVEL CHART ---
+        const inventoryCtx = document.getElementById('inventoryChart').getContext('2d');
+        
+        if (inventoryChartInstance) {
+            inventoryChartInstance.destroy();
+        }
+
+        const stockLabels = (chartData.stockDistribution && chartData.stockDistribution.labels.length > 0)
+            ? chartData.stockDistribution.labels
+            : ['No Stock'];
+        const stockValues = (chartData.stockDistribution && chartData.stockDistribution.data.length > 0)
+            ? chartData.stockDistribution.data
+            : [0];
+
+        // Generate colors using new palette
+        const colors = ['#005a32', '#d62828', '#8b5a2b', '#10B981', '#8B5CF6'];
+        const bgColors = colors.slice(0, stockLabels.length);
+
+        inventoryChartInstance = new Chart(inventoryCtx, {
+            type: 'bar',
+            data: {
+                labels: stockLabels,
+                datasets: [{
+                    label: 'Stock Count',
+                    data: stockValues,
+                    backgroundColor: bgColors
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+    
+    
+</script>
+</body>
+</html>

@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Well Served - Pharmacy Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#005a32",
+                        secondary: "#d62828",
+                        accent: "#8b5a2b",
+                        "background-light": "#f1f5f9",
+                        "background-dark": "#0f172a",
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#1F2937",
+                        "text-light": "#1F2937",
+                        "text-dark": "#F9FAFB",
+                        "subtext-light": "#6B7280",
+                        "subtext-dark": "#9CA3AF",
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#374151",
+                        "success": "#22C55E",
+                        "warning": "#F59E0B",
+                        "danger": "#EF4444"
+                    },
+                    fontFamily: { display: ["Inter", "sans-serif"] },
+                    borderRadius: { DEFAULT: "0.5rem" },
+                },
+            },
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        .search-results {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .dark .search-results {
+            background: #1f2937;
+            border-color: #374151;
+        }
+        
+        .search-result-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .dark .search-result-item {
+            border-bottom-color: #374151;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .dark .search-result-item:hover {
+            background-color: #374151;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-result-category {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .dark .search-result-category {
+            color: #9ca3af;
+        }
+        
+        .search-result-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .search-result-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .dark .search-result-description {
+            color: #9ca3af;
+        }
+        
+        .search-highlight {
+            background-color: #fef3c7;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+        }
+        
+        .dark .search-highlight {
+            background-color: #92400e;
+            color: #fef3c7;
+        }
+
+        .settings-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 320px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+
+        .dark .settings-dropdown {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        .settings-section {
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .dark .settings-section {
+            border-bottom-color: #374151;
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .settings-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-label {
+            flex: 1;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .settings-value {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .dark .settings-value {
+            color: #9ca3af;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #d1d5db;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .dark .toggle-slider {
+            background-color: #4b5563;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #005a32;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .settings-button {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+            font-size: 0.875rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dark .settings-button {
+            background: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+
+        .settings-button:hover {
+            background: #f9fafb;
+        }
+
+        .dark .settings-button:hover {
+            background: #4b5563;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 256px;
+            width: 100%;
+        }
+        
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+        
+        .module-summary {
+            transition: all 0.3s ease;
+        }
+        
+        .module-summary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .refresh-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+        }
+        
+        .refreshing {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+<div class="flex h-screen">
+    <!-- Sidebar with Well Served branding -->
+    <aside class="w-64 bg-surface-light dark:bg-surface-dark flex flex-col border-r border-border-light dark:border-border-dark">
+        <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg border border-slate-100 dark:border-slate-700 shadow-sm">
+                    WS
+                </div>
+                <div>
+                    <h1 class="font-bold text-primary dark:text-green-400 leading-tight">Well Served</h1>
+                    <p class="text-[10px] uppercase tracking-wider text-accent dark:text-amber-600 font-semibold">Since 1994</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <div class="px-2 text-sm font-semibold text-subtext-light dark:text-subtext-dark">Pharmacy</div>
+            <a class="flex items-center px-4 py-2 bg-primary/10 text-primary rounded-md font-semibold" href="dashboard.html">
+                <span class="material-icons mr-3">dashboard</span> Dashboard
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="inventory.html">
+                <span class="material-icons mr-3">inventory_2</span> Inventory
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="patient_records.html">
+                <span class="material-icons mr-3">folder_shared</span> Patient Records
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="supplier.html">
+                <span class="material-icons mr-3">local_shipping</span> Suppliers
+            </a>
+            <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="billing.html">
+                <span class="material-icons mr-3">point_of_sale</span> Sales &amp; Billing
+            </a>
+        </nav>
+    </aside>
+    
+    <main class="flex-1 flex flex-col">
+        <header class="h-16 bg-surface-light dark:bg-surface-dark flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
+            <div class="flex items-center gap-2">
+                <button onclick="confirmBackToHMS(event)" class="flex items-center gap-1 text-sm text-subtext-light hover:text-primary">
+                    <span class="material-icons">arrow_back_ios_new</span> Back to IHMS
+                </button>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-subtext-light dark:text-subtext-dark">search</span>
+                    <input 
+                        id="searchInput"
+                        class="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-primary text-text-light dark:text-text-dark" 
+                        placeholder="Search medicines, patients..." 
+                        type="text"
+                        oninput="handleSearchInput()"
+                    />
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+
+                <button onclick="showNotifications()" class="relative text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
+                    <span class="material-icons">notifications</span>
+                    <span id="notificationBadge" class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-secondary text-white text-xs flex items-center justify-center">3</span>
+                </button>
+
+                <div class="relative">
+                    <button onclick="toggleSettings()" class="text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
+                        <span class="material-icons">settings</span>
+                    </button>
+                    <div id="settingsDropdown" class="settings-dropdown">
+                        <div class="settings-section">
+                            <h4 class="font-semibold text-text-light dark:text-text-dark mb-3">Appearance</h4>
+                            <div class="settings-item">
+                                <span class="settings-label">Dark Mode</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h4 class="font-semibold text-text-light dark:text-text-dark mb-3">Dashboard Settings</h4>
+                            <div class="settings-item">
+                                <span class="settings-label">Auto-refresh</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="autoRefreshToggle" onchange="toggleAutoRefresh()" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="settings-item">
+                                <span class="settings-label">Show Charts</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="showChartsToggle" onchange="toggleShowCharts()" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h4 class="font-semibold text-text-light dark:text-text-dark mb-3">Data Management</h4>
+                            <button class="settings-button mb-2" onclick="exportDashboardData()">
+                                <span class="material-icons text-sm mr-2">download</span>
+                                Export Dashboard Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="logoutUser()" 
+                    class="flex items-center gap-1 bg-primary text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
+                    <span class="material-icons text-sm">logout</span>
+                    Logout
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">PH</div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="flex-1 p-8 overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-text-light dark:text-text-dark">Pharmacy Dashboard</h1>
+                    <p class="text-subtext-light dark:text-subtext-dark mt-1">Overview of pharmacy operations and key metrics</p>
+                </div>
+                <div id="lastUpdated" class="flex items-center gap-2 text-sm text-subtext-light dark:text-subtext-dark bg-surface-light dark:bg-surface-dark px-3 py-1.5 rounded-lg border border-border-light dark:border-border-dark">
+                    <span class="material-icons text-base">update</span>
+                    Last updated: <span id="lastUpdateTime">Just now</span>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">TOTAL INVENTORY</p>
+                            <p id="totalStock" class="text-4xl font-bold text-text-light dark:text-text-dark">835</p>
+                            <div class="flex items-center mt-2 text-sm text-success">
+                                <span class="material-icons text-base">trending_up</span>
+                                <span class="ml-1" id="stockChange">+11.2% from last month</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-primary/10 rounded-lg">
+                            <span class="material-icons text-primary" style="font-size: 28px;">inventory</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">OUT-OF-STOCK</p>
+                            <p id="outOfStock" class="text-4xl font-bold text-text-light dark:text-text-dark">25</p>
+                            <div class="flex items-center mt-2 text-sm text-secondary">
+                                <span class="material-icons text-base">warning</span>
+                                <span class="ml-1" id="criticalItems">5 critical items</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-secondary/10 rounded-lg">
+                            <span class="material-icons text-secondary" style="font-size: 28px;">error_outline</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">EXPIRING SOON</p>
+                            <p id="expiringItems" class="text-4xl font-bold text-text-light dark:text-text-dark">49</p>
+                            <div class="flex items-center mt-2 text-sm text-accent">
+                                <span class="material-icons text-base">calendar_today</span>
+                                <span class="ml-1" id="expiryPeriod">Next 30 days</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-accent/10 rounded-lg">
+                            <span class="material-icons text-accent" style="font-size: 28px;">watch_later</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-subtext-light dark:text-subtext-dark font-medium mb-1">TODAY'S REVENUE</p>
+                            <p id="dailySales" class="text-4xl font-bold text-text-light dark:text-text-dark">₱3,428</p>
+                            <div class="flex items-center mt-2 text-sm text-success">
+                                <span class="material-icons text-base">trending_up</span>
+                                <span class="ml-1" id="salesChange">+7.0% from yesterday</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                            <span class="material-icons text-success" style="font-size: 28px;">payments</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" id="chartsSection">
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="material-icons text-primary">ssid_chart</span>
+                        <h3 class="font-semibold text-text-light dark:text-text-dark">Daily Sales Trends</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="material-icons text-primary">bar_chart</span>
+                        <h3 class="font-semibold text-text-light dark:text-text-dark">Stock Distribution</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="stockDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="material-icons text-primary">pie_chart</span>
+                        <h3 class="font-semibold text-text-light dark:text-text-dark">Supplier Contribution</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="supplierChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Module Summary Reports -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-text-light dark:text-text-dark mb-4">Module Summary Reports</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="module-summary bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons text-primary">inventory_2</span>
+                                <h3 class="font-semibold text-text-light dark:text-text-dark">Inventory Summary</h3>
+                            </div>
+                            <button id="refreshInventory" class="refresh-btn text-subtext-light dark:text-subtext-dark hover:text-primary" onclick="refreshInventorySummary()">
+                                <span class="material-icons">refresh</span>
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark">Total Items:</span>
+                                <span id="inventoryTotal" class="font-semibold">835</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark">Low Stock:</span>
+                                <span id="inventoryLowStock" class="font-semibold text-accent">25 items</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark">Expiring Soon:</span>
+                                <span id="inventoryExpiring" class="font-semibold text-secondary">49 items</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark text-xs">Last Updated:</span>
+                                <span id="inventoryUpdated" class="text-xs text-subtext-light dark:text-subtext-dark">Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="module-summary bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons text-primary">receipt_long</span>
+                                <h3 class="font-semibold text-text-light dark:text-text-dark">Prescriptions Summary</h3>
+                            </div>
+                            <button id="refreshPrescriptions" class="refresh-btn text-subtext-light dark:text-subtext-dark hover:text-primary" onclick="refreshPrescriptionsSummary()">
+                                <span class="material-icons">refresh</span>
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark">Today's Total:</span>
+                                <span id="prescriptionsToday" class="font-semibold">18</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark">Pending Review:</span>
+                                <span id="prescriptionsPending" class="font-semibold text-accent">5</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark">Ready for Pickup:</span>
+                                <span id="prescriptionsReady" class="font-semibold text-primary">12</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark text-xs">Last Updated:</span>
+                                <span id="prescriptionsUpdated" class="text-xs text-subtext-light dark:text-subtext-dark">Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="module-summary bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons text-primary">point_of_sale</span>
+                                <h3 class="font-semibold text-text-light dark:text-text-dark">Sales Summary</h3>
+                            </div>
+                            <button id="refreshSales" class="refresh-btn text-subtext-light dark:text-subtext-dark hover:text-primary" onclick="refreshSalesSummary()">
+                                <span class="material-icons">refresh</span>
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark">Today's Revenue:</span>
+                                <span id="salesRevenue" class="font-semibold">₱3,428</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark">Transactions:</span>
+                                <span id="salesTransactions" class="font-semibold">42</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark">Avg. Transaction:</span>
+                                <span id="salesAverage" class="font-semibold">₱82</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-subtext-light dark:text-subtext-dark text-xs">Last Updated:</span>
+                                <span id="salesUpdated" class="text-xs text-subtext-light dark:text-subtext-dark">Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    let realTimeInterval;
+    let autoRefreshInterval;
+    let salesChartInstance = null;
+    let stockChartInstance = null;
+    let supplierChartInstance = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDarkModePreference();
+        initializeCharts();
+        initializeSummaryData();
+        startAutoRefresh();
+    });
+
+    function loadDarkModePreference() {
+        const isDarkMode = sessionStorage.getItem('darkMode') === 'true';
+        document.documentElement.classList.toggle('dark', isDarkMode);
+        const toggle = document.getElementById('darkModeToggle');
+        if (toggle) toggle.checked = isDarkMode;
+    }
+
+    function saveDarkModePreference(isDarkMode) {
+        sessionStorage.setItem('darkMode', isDarkMode);
+    }
+
+    function initializeSummaryData() {
+        const now = new Date().toLocaleTimeString();
+        document.getElementById('inventoryUpdated').textContent = now;
+        document.getElementById('prescriptionsUpdated').textContent = now;
+        document.getElementById('salesUpdated').textContent = now;
+        document.getElementById('lastUpdateTime').textContent = now;
+    }
+
+    function initializeCharts() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+        const textColor = isDark ? '#F9FAFB' : '#1F2937';
+
+        // Sales Trend Chart
+        const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
+        if (salesChartInstance) salesChartInstance.destroy();
+        
+        salesChartInstance = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Daily Sales (₱)',
+                    data: [2450, 2847, 3100, 2750, 3200, 2950, 3428],
+                    borderColor: '#005a32',
+                    backgroundColor: 'rgba(0, 90, 50, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `₱${context.parsed.y.toLocaleString()}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor },
+                        ticks: {
+                            color: textColor,
+                            callback: (value) => '₱' + value.toLocaleString()
+                        }
+                    },
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    }
+                }
+            }
+        });
+
+        // Stock Distribution Chart
+        const stockCtx = document.getElementById('stockDistributionChart').getContext('2d');
+        if (stockChartInstance) stockChartInstance.destroy();
+        
+        stockChartInstance = new Chart(stockCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Analgesics', 'Antibiotics', 'Diabetes', 'Cardiovascular', 'Gastro'],
+                datasets: [{
+                    label: 'Stock Count',
+                    data: [450, 75, 120, 90, 200],
+                    backgroundColor: [
+                        '#005a32',
+                        '#d62828',
+                        '#8b5a2b',
+                        '#22C55E',
+                        '#8B5CF6'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textColor }
+                    }
+                }
+            }
+        });
+
+        // Supplier Chart
+        const supplierCtx = document.getElementById('supplierChart').getContext('2d');
+        if (supplierChartInstance) supplierChartInstance.destroy();
+        
+        supplierChartInstance = new Chart(supplierCtx, {
+            type: 'pie',
+            data: {
+                labels: ['MediCorp', 'PharmaPlus', 'HealthSupplies', 'MediDirect', 'Others'],
+                datasets: [{
+                    data: [35, 25, 20, 15, 5],
+                    backgroundColor: [
+                        '#005a32',
+                        '#d62828',
+                        '#8b5a2b',
+                        '#22C55E',
+                        '#8B5CF6'
+                    ],
+                    borderWidth: 2,
+                    borderColor: isDark ? '#1F2937' : '#FFFFFF'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            usePointStyle: true,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.label}: ${context.parsed}%`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function refreshInventorySummary() {
+        const refreshBtn = document.getElementById('refreshInventory');
+        refreshBtn.classList.add('refreshing');
+        
+        setTimeout(() => {
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('inventoryTotal').textContent = '835';
+            document.getElementById('inventoryLowStock').textContent = '25 items';
+            document.getElementById('inventoryExpiring').textContent = '49 items';
+            document.getElementById('inventoryUpdated').textContent = now;
+            
+            refreshBtn.classList.remove('refreshing');
+            showToast('Inventory data updated');
+        }, 1000);
+    }
+
+    function refreshPrescriptionsSummary() {
+        const refreshBtn = document.getElementById('refreshPrescriptions');
+        refreshBtn.classList.add('refreshing');
+        
+        setTimeout(() => {
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('prescriptionsToday').textContent = '18';
+            document.getElementById('prescriptionsPending').textContent = '5';
+            document.getElementById('prescriptionsReady').textContent = '12';
+            document.getElementById('prescriptionsUpdated').textContent = now;
+            
+            refreshBtn.classList.remove('refreshing');
+            showToast('Prescriptions data updated');
+        }, 1000);
+    }
+
+    function refreshSalesSummary() {
+        const refreshBtn = document.getElementById('refreshSales');
+        refreshBtn.classList.add('refreshing');
+        
+        setTimeout(() => {
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('salesRevenue').textContent = '₱3,428';
+            document.getElementById('salesTransactions').textContent = '42';
+            document.getElementById('salesAverage').textContent = '₱82';
+            document.getElementById('salesUpdated').textContent = now;
+            
+            refreshBtn.classList.remove('refreshing');
+            showToast('Sales data updated');
+        }, 1000);
+    }
+
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-success text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2';
+        toast.innerHTML = `<span class="material-icons text-sm">check_circle</span><span>${message}</span>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    function toggleSettings() {
+        const dropdown = document.getElementById('settingsDropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function toggleDarkMode() {
+        const isDarkMode = document.getElementById('darkModeToggle').checked;
+        document.documentElement.classList.toggle('dark', isDarkMode);
+        saveDarkModePreference(isDarkMode);
+        initializeCharts();
+    }
+
+    function toggleAutoRefresh() {
+        const enabled = document.getElementById('autoRefreshToggle').checked;
+        if (enabled) {
+            startAutoRefresh();
+        } else {
+            clearInterval(autoRefreshInterval);
+        }
+    }
+
+    function toggleShowCharts() {
+        const enabled = document.getElementById('showChartsToggle').checked;
+        const chartsSection = document.getElementById('chartsSection');
+        chartsSection.style.display = enabled ? 'grid' : 'none';
+    }
+
+    function startAutoRefresh() {
+        autoRefreshInterval = setInterval(() => {
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('lastUpdateTime').textContent = now;
+        }, 30000);
+    }
+
+    function showNotifications() {
+        Swal.fire({
+            title: 'Notifications',
+            html: `
+                <div class="text-left space-y-3">
+                    <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200">
+                        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">Low Stock Alert</p>
+                        <p class="text-xs text-yellow-600">Amoxicillin 250mg running low (15 units)</p>
+                    </div>
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
+                        <p class="text-sm font-medium text-blue-800 dark:text-blue-300">New Prescription</p>
+                        <p class="text-xs text-blue-600">Dr. Smith prescribed Metformin</p>
+                    </div>
+                    <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200">
+                        <p class="text-sm font-medium text-green-800 dark:text-green-300">Payment Received</p>
+                        <p class="text-xs text-green-600">₱1,250 for invoice INV-00123</p>
+                    </div>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true,
+            width: 450
+        });
+    }
+
+    function confirmBackToHMS(event) {
+        event.preventDefault();
+        Swal.fire({
+            title: "Leave Pharmacy?",
+            text: "Return to Integrated Healthcare Management System?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#005a32",
+            confirmButtonText: "Yes, go back"
+        });
+    }
+
+    function logoutUser() {
+        Swal.fire({
+            title: "Logout?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#005a32",
+            confirmButtonText: "Yes, logout"
+        });
+    }
+
+    function exportDashboardData() {
+        const csvData = "Metric,Value,Change\nTotal Stock,835,+11.2%\nOut of Stock,25,5 critical\nExpiring Soon,49,Next 30 days\nDaily Sales,₱3428,+7.0%";
+        const blob = new Blob([csvData], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pharmacy_dashboard.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Data exported successfully');
+    }
+
+    // Search functionality
+    const searchData = {
+        inventory: [
+            { name: "Paracetamol 500mg", description: "Pain reliever", category: "Analgesics" },
+            { name: "Amoxicillin 250mg", description: "Antibiotic", category: "Antibiotics" },
+            { name: "Metformin 500mg", description: "Diabetes medication", category: "Diabetes" }
+        ]
+    };
+
+    function handleSearchInput() {
+        const input = document.getElementById('searchInput');
+        const results = document.getElementById('searchResults');
+        const query = input.value.trim().toLowerCase();
+        
+        if (!query) {
+            results.style.display = 'none';
+            return;
+        }
+        
+        const matches = searchData.inventory.filter(item => 
+            item.name.toLowerCase().includes(query) || 
+            item.description.toLowerCase().includes(query)
+        );
+        
+        if (matches.length === 0) {
+            results.innerHTML = '<div class="search-result-item text-center py-4">No results found</div>';
+        } else {
+            results.innerHTML = matches.map(item => `
+                <div class="search-result-item">
+                    <div class="search-result-title">${item.name}</div>
+                    <div class="search-result-description">${item.description}</div>
+                </div>
+            `).join('');
+        }
+        
+        results.style.display = 'block';
+    }
+
+    // Close dropdowns on outside click
+    document.addEventListener('click', function(e) {
+        const searchResults = document.getElementById('searchResults');
+        const searchInput = document.getElementById('searchInput');
+        const settingsDropdown = document.getElementById('settingsDropdown');
+        
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+        
+        if (!e.target.closest('button[onclick="toggleSettings()"]') && !settingsDropdown.contains(e.target)) {
+            settingsDropdown.style.display = 'none';
+        }
+    });
+</script>
+
+</body>
+</html>
