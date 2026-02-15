@@ -6,6 +6,7 @@
     <title>Well Served - Pharmacy Dashboard</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -41,6 +42,15 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         
+        .drag-region {
+            -webkit-app-region: drag;
+        }
+        
+        /* This makes the buttons clickable again */
+        .no-drag {
+            -webkit-app-region: no-drag;
+        }
+
         .search-results {
             display: none;
             position: absolute;
@@ -300,7 +310,31 @@
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
-<div class="flex h-screen">
+
+    <!--Titlebar-->
+    <header id="title-bar" class="drag-region fixed top-0 left-0 w-full h-8 bg-white flex justify-between items-stretch z-40 border-b border-gray-200 select-none">
+    <div class="flex items-center pl-4 gap-2 text-gray-600">
+        <span class="text-xs font-semibold">IHMS Pharmacy</span>
+    </div>
+
+    <div class="no-drag flex items-center relative z-50"> 
+        
+        <button id="min-btn" class="h-full w-12 flex justify-center items-center hover:bg-gray-200 transition-colors duration-200">
+            <span class="material-icons-outlined text-sm text-gray-600">remove</span>
+        </button>
+        
+        <button id="max-btn" class="h-full w-12 flex justify-center items-center hover:bg-gray-200 transition-colors duration-200">
+            <span class="material-icons-outlined text-sm text-gray-600">crop_square</span>
+        </button>
+        
+        <button id="close-btn" class="h-full w-12 flex justify-center items-center hover:bg-red-500 hover:text-white transition-colors duration-200 group">
+            <span class="material-icons-outlined text-sm text-gray-600 group-hover:text-white">close</span>
+        </button>
+
+    </div>
+</header>
+
+    <div class="flex h-screen pt-8">
     <!-- Sidebar with Well Served branding -->
     <aside class="w-64 bg-surface-light dark:bg-surface-dark flex flex-col border-r border-border-light dark:border-border-dark">
         <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark">
@@ -993,6 +1027,7 @@
         }
     });
 </script>
+<script src="../js/windowcontrollerbtn.js"></script>
 
 </body>
 </html>
