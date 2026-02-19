@@ -5,8 +5,10 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>PharmaCare - Inventory Management</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         tailwind.config = {
             darkMode: "class",
@@ -30,100 +32,106 @@
                         "warning": "#F59E0B",
                         "danger": "#EF4444"
                     },
-                    fontFamily: {
-                        display: ["Inter", "sans-serif"],
-                    },
-                    borderRadius: {
-                        DEFAULT: "0.75rem",
-                    },
+                    fontFamily: { display: ["Inter", "sans-serif"] },
+                    borderRadius: { DEFAULT: "0.75rem" },
                 },
             },
         };
     </script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        body { font-family: 'Inter', sans-serif; }
+        .drag-region { -webkit-app-region: drag; }
+        .no-drag     { -webkit-app-region: no-drag; }
+        .hidden { display: none !important; }
+
+        .alert-card { border-left: 4px solid; }
+        .alert-critical { border-left-color: #EF4444; }
+        .alert-expiry { border-left-color: #F59E0B; }
+        .alert-shortage { border-left-color: #358E83; }
+        .alert-resolved { border-left-color: #6B7280; background: #f8fafc; }
+
+        .notification-dropdown {
+            display: none; position: absolute; top: 100%; right: 0;
+            width: 380px; background: white; border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1000;
+            border: 1px solid #e5e7eb;
         }
-        .hidden {
-            display: none !important;
+        .notification-dropdown.show { display: block; }
+        .notification-item { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; }
+        .notification-item:hover { background-color: #f9fafb; }
+        .notification-item:last-child { border-bottom: none; }
+
+        .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+
+        .action-btn { padding: 8px 12px; border-radius: 6px; font-weight: 500; transition: all 0.2s ease; display: flex; align-items: center; gap: 4px; }
+        .edit-btn    { background-color: rgba(26,95,62,0.1);  color: rgb(26,95,62);  border: 1px solid rgba(26,95,62,0.2);  }
+        .edit-btn:hover    { background-color: rgba(26,95,62,0.2); }
+        .delete-btn  { background-color: rgba(214,40,40,0.1); color: rgb(214,40,40); border: 1px solid rgba(214,40,40,0.2); }
+        .delete-btn:hover  { background-color: rgba(214,40,40,0.2); }
+        .archive-btn { background-color: rgba(139,90,43,0.1); color: rgb(139,90,43); border: 1px solid rgba(139,90,43,0.2); }
+        .archive-btn:hover { background-color: rgba(139,90,43,0.2); }
+        .restore-btn { background-color: rgba(26,95,62,0.1);  color: rgb(26,95,62);  border: 1px solid rgba(26,95,62,0.2);  }
+        .restore-btn:hover { background-color: rgba(26,95,62,0.2); }
+
+        .tab-btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; transition: all 0.2s ease; }
+        .tab-btn.active { background-color: rgba(26,95,62,0.1); color: rgb(26,95,62); }
+        .tab-btn:not(.active) { color: rgb(100,116,139); }
+        .tab-btn:not(.active):hover { background-color: rgba(100,116,139,0.1); }
+
+        /* ── SIDEBAR LOGOUT BUTTON ── */
+        .sidebar-logout-btn {
+            display: flex; align-items: center; gap: 10px;
+            width: 100%; padding: 10px 16px; border: none;
+            background: none; cursor: pointer; border-radius: 8px;
+            color: #d62828; font-size: 14px; font-weight: 600;
+            transition: background 0.15s; text-align: left;
         }
-        .modal-overlay {
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-        }
-        .action-btn {
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .edit-btn {
-            background-color: rgba(26, 95, 62, 0.1);
-            color: rgb(26, 95, 62);
-            border: 1px solid rgba(26, 95, 62, 0.2);
-        }
-        .edit-btn:hover {
-            background-color: rgba(26, 95, 62, 0.2);
-        }
-        .delete-btn {
-            background-color: rgba(214, 40, 40, 0.1);
-            color: rgb(214, 40, 40);
-            border: 1px solid rgba(214, 40, 40, 0.2);
-        }
-        .delete-btn:hover {
-            background-color: rgba(214, 40, 40, 0.2);
-        }
-        .archive-btn {
-            background-color: rgba(139, 90, 43, 0.1);
-            color: rgb(139, 90, 43);
-            border: 1px solid rgba(139, 90, 43, 0.2);
-        }
-        .archive-btn:hover {
-            background-color: rgba(139, 90, 43, 0.2);
-        }
-        .restore-btn {
-            background-color: rgba(26, 95, 62, 0.1);
-            color: rgb(26, 95, 62);
-            border: 1px solid rgba(26, 95, 62, 0.2);
-        }
-        .restore-btn:hover {
-            background-color: rgba(26, 95, 62, 0.2);
-        }
-        .tab-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .tab-btn.active {
-            background-color: rgba(26, 95, 62, 0.1);
-            color: rgb(26, 95, 62);
-        }
-        .tab-btn:not(.active) {
-            color: rgb(100, 116, 139);
-        }
-        .tab-btn:not(.active):hover {
-            background-color: rgba(100, 116, 139, 0.1);
-        }
+        .sidebar-logout-btn:hover { background: #fef2f2; }
+        .sidebar-logout-btn .material-icons { font-size: 20px; color: #d62828; }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
-    <div class="flex h-screen">
-        <aside class="w-64 bg-surface-light dark:bg-surface-dark flex flex-col border-r border-border-light dark:border-border-dark">
-            <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark">
-                 <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg border border-slate-100 dark:border-slate-700 shadow-sm">
-                    WS
-                </div>
-                <div>
-                    <h1 class="font-bold text-primary dark:text-green-400 leading-tight">Well Served</h1>
-                    <p class="text-[10px] uppercase tracking-wider text-accent dark:text-amber-600 font-semibold">Since 1994</p>
-                </div>
-            </div>
-            </div>
+
+    <!-- ── TITLE BAR ── -->
+    <div id="title-bar" class="drag-region fixed top-0 left-0 w-full h-8 bg-white flex justify-between items-stretch z-40 border-b border-gray-200 select-none">
+        <div class="flex items-center pl-4 gap-2 text-gray-600">
+            <span class="text-xs font-semibold">IHMS Pharmacy</span>
+        </div>
+        <div class="no-drag flex items-center relative z-50">
+            <button id="min-btn" class="h-full w-12 flex justify-center items-center hover:bg-gray-200 transition-colors duration-200">
+                <span class="material-icons-outlined text-sm text-gray-600">remove</span>
+            </button>
+            <button id="max-btn" class="h-full w-12 flex justify-center items-center hover:bg-gray-200 transition-colors duration-200">
+                <span class="material-icons-outlined text-sm text-gray-600" id="maxIcon">crop_square</span>
+            </button>
+            <button id="close-btn" class="h-full w-12 flex justify-center items-center hover:bg-red-500 transition-colors duration-200 group">
+                <span class="material-icons-outlined text-sm text-gray-600 group-hover:text-white">close</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="flex h-screen pt-8">
+
+        <!-- ── SIDEBAR ── -->
+        <aside class="w-64 bg-surface-light dark:bg-surface-dark flex flex-col border-r border-border-light dark:border-border-dark flex-shrink-0">
+            <!-- Logo -->
+           <div class="h-16 flex items-center gap-3 px-4 border-b border-border-light dark:border-border-dark">
+
+    <img
+      src="images/wellserved.png"
+      alt="Well Served Logo"
+      class="w-12 h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700 shadow-sm"
+    />
+    <div>
+        <h1 class="font-bold text-primary dark:text-green-400 leading-tight">
+            Well Served
+        </h1>
+        <p class="text-[10px] uppercase tracking-wider text-accent dark:text-amber-600 font-semibold">
+            Since 1994
+        </p>
+    </div>
+</div>
+            <!-- Nav Links -->
             <nav class="flex-1 px-4 py-6 space-y-2">
                 <div class="px-2 text-sm font-semibold text-subtext-light dark:text-subtext-dark whitespace-nowrap">Admin Panel</div>
                 <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="dashboard_admin.html">
@@ -144,34 +152,83 @@
                 <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="user_management.html">
                     <span class="material-icons mr-3">group</span> User Management
                 </a>
-                <a class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-md" href="settings_tab1.html">
-                    <span class="material-icons mr-3">settings</span> System Settings
-                </a>
             </nav>
+
+            <!-- ── LOGOUT at bottom of sidebar ── -->
+            <div class="px-4 pb-6 border-t border-border-light dark:border-border-dark pt-4">
+                <button onclick="logoutUser()" class="sidebar-logout-btn">
+                    <span class="material-icons">logout</span>
+                    Logout
+                </button>
+            </div>
         </aside>
 
-        <main class="flex-1 flex flex-col">
-            <header class="h-16 bg-surface-light dark:bg-surface-dark flex items-center justify-between px-6 border-b border-border-light dark:border-border-dark">
+        <!-- ── RIGHT COLUMN ── -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <!-- ── APP HEADER (no logout here) ── -->
+            <header class="h-16 bg-surface-light dark:bg-surface-dark flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
                 <div class="flex items-center gap-2">
-                    <a href="../../html/index.html" class="flex items-center gap-1 text-sm text-subtext-light dark:text-subtext-dark hover:text-primary">
+                    <button onclick="confirmBackToHMS(event)" class="flex items-center gap-1 text-sm text-subtext-light hover:text-primary">
                         <span class="material-icons">arrow_back_ios_new</span> Back to IHMS
-                    </a>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="relative">
-                        <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-subtext-light dark:text-subtext-dark">search</span>
-                        <input id="searchInput" class="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-primary text-text-light dark:text-text-dark" placeholder="Search..." type="text"/>
-                    </div>
-                    <button class="relative text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark">
-                        <span class="material-icons">notifications</span>
-                        <span class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-secondary"></span>
                     </button>
-                    <div class="flex items-center gap-2">
-                        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">DB</div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <!-- Notification Bell -->
+                    <div class="relative">
+                        <button id="notificationBtn" class="relative text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <span class="material-icons text-2xl">notifications</span>
+                            <span id="notificationBadge" class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">4</span>
+                        </button>
+                        <div id="notificationDropdown" class="notification-dropdown dark:bg-surface-dark dark:border-border-dark">
+                            <div class="p-4 border-b border-border-light dark:border-border-dark">
+                                <h3 class="font-semibold text-text-light dark:text-text-dark">Notifications</h3>
+                            </div>
+                            <div class="max-h-80 overflow-y-auto">
+                                <div class="notification-item">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-icons text-danger text-lg mt-0.5">warning</span>
+                                        <div>
+                                            <p class="text-sm font-medium text-text-light dark:text-text-dark">Critical drug recall</p>
+                                            <p class="text-xs text-subtext-light dark:text-subtext-dark">Ibuprofen 400mg has been recalled</p>
+                                            <p class="text-xs text-subtext-light dark:text-subtext-dark mt-1">2 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="notification-item">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-icons text-warning text-lg mt-0.5">schedule</span>
+                                        <div>
+                                            <p class="text-sm font-medium text-text-light dark:text-text-dark">Medicine expiring soon</p>
+                                            <p class="text-xs text-subtext-light dark:text-subtext-dark">Paracetamol 500mg expires in 5 days</p>
+                                            <p class="text-xs text-subtext-light dark:text-subtext-dark mt-1">4 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="notification-item">
+                                    <div class="flex items-start gap-3">
+                                        <span class="material-icons text-primary text-lg mt-0.5">inventory_2</span>
+                                        <div>
+                                            <p class="text-sm font-medium text-text-light dark:text-text-dark">Low stock alert</p>
+                                            <p class="text-xs text-subtext-light dark:text-subtext-dark">Amoxicillin 250mg is critically low</p>
+                                            <p class="text-xs text-subtext-light dark:text-subtext-dark mt-1">6 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 border-t border-border-light dark:border-border-dark text-center">
+                                <a href="medication_alerts.html" class="text-sm text-primary font-medium hover:underline">View all notifications</a>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Profile Avatar -->
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">AD</div>
                 </div>
             </header>
 
+            <!-- ── SCROLLABLE PAGE BODY ── -->
             <main class="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark">
                 <div class="flex items-center justify-between mb-8">
                     <div>
@@ -183,7 +240,7 @@
                     </button>
                 </div>
 
-                <!-- Tabs for Inventory and Archive -->
+                <!-- Tabs -->
                 <div class="flex mb-6 bg-surface-light dark:bg-surface-dark rounded-lg p-1 w-fit border border-border-light dark:border-border-dark">
                     <button id="inventoryTab" class="tab-btn active">Active Inventory</button>
                     <button id="archiveTab" class="tab-btn">Archive</button>
@@ -191,25 +248,21 @@
 
                 <!-- Alerts Section -->
                 <div id="alertsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                   <div class="bg-[rgba(26,95,62,0.1)] dark:bg-[rgba(26,95,62,0.2)] border-l-4 border-[rgb(26,95,62)] p-6 rounded-lg">
-    <div class="flex items-start gap-4">
-        <span class="material-icons text-[rgb(26,95,62)] mt-1">warning_amber</span>
-        <div>
-            <h3 class="font-semibold text-[rgb(26,95,62)] text-lg">Low Stock & Out-of-Stock Alerts</h3>
-            <ul id="lowStockAlerts" class="list-disc list-inside mt-2 space-y-1 text-text-light dark:text-text-dark text-sm">
-                </ul>
-        </div>
-    </div>
-</div>
-
+                    <div class="bg-[rgba(26,95,62,0.1)] dark:bg-[rgba(26,95,62,0.2)] border-l-4 border-[rgb(26,95,62)] p-6 rounded-lg">
+                        <div class="flex items-start gap-4">
+                            <span class="material-icons text-[rgb(26,95,62)] mt-1">warning_amber</span>
+                            <div>
+                                <h3 class="font-semibold text-[rgb(26,95,62)] text-lg">Low Stock & Out-of-Stock Alerts</h3>
+                                <ul id="lowStockAlerts" class="list-disc list-inside mt-2 space-y-1 text-text-light dark:text-text-dark text-sm"></ul>
+                            </div>
+                        </div>
+                    </div>
                     <div class="bg-secondary/10 dark:bg-secondary/20 border-l-4 border-secondary p-6 rounded-lg">
                         <div class="flex items-start gap-4">
                             <span class="material-icons text-secondary mt-1">event_busy</span>
                             <div>
                                 <h3 class="font-semibold text-secondary text-lg">Expiry Alerts (Next 30 Days)</h3>
-                                <ul id="expiryAlerts" class="list-disc list-inside mt-2 space-y-1 text-text-light dark:text-text-dark text-sm">
-                                    <!-- Dynamic content will be loaded here -->
-                                </ul>
+                                <ul id="expiryAlerts" class="list-disc list-inside mt-2 space-y-1 text-text-light dark:text-text-dark text-sm"></ul>
                             </div>
                         </div>
                     </div>
@@ -223,26 +276,24 @@
                             <input id="tableSearchInput" class="w-full pl-10 pr-4 py-2 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Search medicines..." type="text"/>
                         </div>
                         <button id="filterBtn" class="border border-border-light dark:border-border-dark px-4 py-2 rounded-lg flex items-center gap-2 text-subtext-light dark:text-subtext-dark hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                            <span class="material-icons" style="font-size: 20px;">filter_list</span> Filter
+                            <span class="material-icons" style="font-size:20px;">filter_list</span> Filter
                         </button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead class="bg-primary text-white text-xs uppercase tracking-wider">
                                 <tr>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Medicine Name</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Batch Number</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Quantity</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Expiry Date</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Supplier</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Price</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Status</th>
-                                    <th class="px-6 py-4 font-semibold text-center" scope="col">Actions</th>
+                                    <th class="px-6 py-4 font-semibold">Medicine Name</th>
+                                    <th class="px-6 py-4 font-semibold">Batch Number</th>
+                                    <th class="px-6 py-4 font-semibold">Quantity</th>
+                                    <th class="px-6 py-4 font-semibold">Expiry Date</th>
+                                    <th class="px-6 py-4 font-semibold">Supplier</th>
+                                    <th class="px-6 py-4 font-semibold">Price</th>
+                                    <th class="px-6 py-4 font-semibold">Status</th>
+                                    <th class="px-6 py-4 font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="inventoryTableBody">
-                                <!-- Dynamic content will be loaded here -->
-                            </tbody>
+                            <tbody id="inventoryTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -255,31 +306,30 @@
                             <input id="archiveSearchInput" class="w-full pl-10 pr-4 py-2 rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Search archived medicines..." type="text"/>
                         </div>
                         <button id="clearArchiveBtn" class="action-btn delete-btn">
-                            <span class="material-icons" style="font-size: 20px;">delete_sweep</span> Clear Archive
+                            <span class="material-icons" style="font-size:20px;">delete_sweep</span> Clear Archive
                         </button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead class="bg-primary text-white text-xs uppercase tracking-wider">
                                 <tr>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Medicine Name</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Batch Number</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Quantity</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Expiry Date</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Supplier</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Price</th>
-                                    <th class="px-6 py-4 font-semibold" scope="col">Archived Date</th>
-                                    <th class="px-6 py-4 font-semibold text-center" scope="col">Actions</th>
+                                    <th class="px-6 py-4 font-semibold">Medicine Name</th>
+                                    <th class="px-6 py-4 font-semibold">Batch Number</th>
+                                    <th class="px-6 py-4 font-semibold">Quantity</th>
+                                    <th class="px-6 py-4 font-semibold">Expiry Date</th>
+                                    <th class="px-6 py-4 font-semibold">Supplier</th>
+                                    <th class="px-6 py-4 font-semibold">Price</th>
+                                    <th class="px-6 py-4 font-semibold">Archived Date</th>
+                                    <th class="px-6 py-4 font-semibold text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="archiveTableBody">
-                                <!-- Dynamic content will be loaded here -->
-                            </tbody>
+                            <tbody id="archiveTableBody"></tbody>
                         </table>
                     </div>
                 </div>
             </main>
-        </main>
+
+        </div><!-- end right column -->
     </div>
 
     <!-- Add/Edit Medicine Modal -->
@@ -302,15 +352,12 @@
                                 <span class="material-icons text-gray-400 text-sm">expand_more</span>
                             </div>
                         </div>
-                        <div id="medicineDropdownList" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                        </div>
+                        <div id="medicineDropdownList" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto"></div>
                     </div>
-
                     <div>
                         <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Batch Number</label>
                         <input type="text" id="batchNumber" required class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Batch number"/>
                     </div>
-
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Quantity</label>
@@ -325,18 +372,15 @@
                             <input type="number" id="sellingPrice" step="0.01" min="0" required class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="Sell Price"/>
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Expiry Date</label>
                         <input type="date" id="expiryDate" class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark"/>
                     </div>
-
                     <div>
                         <label class="block text-sm text-subtext-light dark:text-subtext-dark mb-1">Minimum Stock Level</label>
                         <input type="number" id="minStockLevel" required min="1" class="w-full bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary text-text-light dark:text-text-dark" placeholder="10" value="10"/>
                     </div>
                 </div>
-
                 <div class="flex gap-3 mt-6">
                     <button type="button" id="cancelMedicineBtn" class="flex-1 px-4 py-2 border border-border-light dark:border-border-dark rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-text-light dark:text-text-dark">Cancel</button>
                     <button type="button" id="saveMedicineBtn" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">Save Medicine</button>
@@ -351,11 +395,11 @@
             <div class="flex items-center justify-center mb-4">
                 <span class="material-icons text-secondary text-5xl">warning</span>
             </div>
-            <h2 class="text-xl font-semibold text-center text-text-light dark:text-text-dark mb-2">Confirm Deletion</h2>
-            <p id="deleteMessage" class="text-center text-subtext-light dark:text-subtext-dark mb-6">Are you sure you want to delete this medicine? This action cannot be undone.</p>
+            <h2 class="text-xl font-semibold text-center text-text-light dark:text-text-dark mb-2">Confirm Action</h2>
+            <p id="deleteMessage" class="text-center text-subtext-light dark:text-subtext-dark mb-6">Are you sure?</p>
             <div class="flex gap-3">
                 <button id="cancelDeleteBtn" class="flex-1 px-4 py-2 border border-border-light dark:border-border-dark rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-text-light dark:text-text-dark">Cancel</button>
-                <button id="confirmDeleteBtn" class="flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90">Delete</button>
+                <button id="confirmDeleteBtn" class="flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90">Confirm</button>
             </div>
         </div>
     </div>
@@ -375,44 +419,68 @@
                         <div>
                             <label class="block text-sm font-medium text-text-light dark:text-text-dark mb-2">Filter by Status</label>
                             <div class="space-y-2">
-                                <label class="flex items-center">
-                                    <input type="radio" name="filterStatus" value="all" class="text-primary focus:ring-primary" checked>
-                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">All Active</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="filterStatus" value="inStock" class="text-primary focus:ring-primary">
-                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">In Stock</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="filterStatus" value="lowStock" class="text-primary focus:ring-primary">
-                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">Low Stock</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="filterStatus" value="outOfStock" class="text-primary focus:ring-primary">
-                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">Out of Stock</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="filterStatus" value="expired" class="text-primary focus:ring-primary">
-                                    <span class="ml-2 text-subtext-light dark:text-subtext-dark">Expired</span>
-                                </label>
+                                <label class="flex items-center"><input type="radio" name="filterStatus" value="all" class="text-primary focus:ring-primary" checked><span class="ml-2 text-subtext-light dark:text-subtext-dark">All Active</span></label>
+                                <label class="flex items-center"><input type="radio" name="filterStatus" value="inStock" class="text-primary focus:ring-primary"><span class="ml-2 text-subtext-light dark:text-subtext-dark">In Stock</span></label>
+                                <label class="flex items-center"><input type="radio" name="filterStatus" value="lowStock" class="text-primary focus:ring-primary"><span class="ml-2 text-subtext-light dark:text-subtext-dark">Low Stock</span></label>
+                                <label class="flex items-center"><input type="radio" name="filterStatus" value="outOfStock" class="text-primary focus:ring-primary"><span class="ml-2 text-subtext-light dark:text-subtext-dark">Out of Stock</span></label>
+                                <label class="flex items-center"><input type="radio" name="filterStatus" value="expired" class="text-primary focus:ring-primary"><span class="ml-2 text-subtext-light dark:text-subtext-dark">Expired</span></label>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="p-6 border-t border-border-light dark:border-border-dark flex justify-end gap-3">
-                <button id="clearFilterBtn" type="button" class="px-4 py-2 border border-border-light dark:border-border-dark text-text-light dark:text-text-dark rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                    Clear Filter
-                </button>
-                <button id="applyFilterBtn" type="button" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors">
-                    Apply Filter
-                </button>
+                <button id="clearFilterBtn" type="button" class="px-4 py-2 border border-border-light dark:border-border-dark text-text-light dark:text-text-dark rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Clear Filter</button>
+                <button id="applyFilterBtn" type="button" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors">Apply Filter</button>
             </div>
         </div>
     </div>
 
-    <!-- Include the JavaScript -->
     <script>
+        const API_BASE_URL = 'http://localhost:5001';
+
+        // ── WINDOW CONTROLS ──
+        document.getElementById('min-btn').addEventListener('click', () => { if (window.electronAPI) window.electronAPI.minimize(); });
+        document.getElementById('max-btn').addEventListener('click', () => {
+            if (window.electronAPI) { window.electronAPI.maximize(); }
+            else { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(()=>{}); document.getElementById('maxIcon').textContent = 'filter_none'; } else { document.exitFullscreen(); document.getElementById('maxIcon').textContent = 'crop_square'; } }
+        });
+        document.getElementById('close-btn').addEventListener('click', () => {
+            Swal.fire({ title:'Close Application?', icon:'question', showCancelButton:true, confirmButtonColor:'#005a32', confirmButtonText:'Yes, close' })
+            .then(r => { if (r.isConfirmed) { sessionStorage.clear(); window.location.href = '../html/login.html'; } });
+        });
+
+        // ── BACK TO IHMS ──
+        function confirmBackToHMS(event) {
+            event.preventDefault();
+            Swal.fire({ title:'Leave Inventory?', text:'Return to Integrated Healthcare Management System?', icon:'question', showCancelButton:true, confirmButtonColor:'#1a5f3e', confirmButtonText:'Yes, go back' })
+            .then(r => { if (r.isConfirmed) window.location.href = '../html/index.html'; });
+        }
+
+        // ── LOGOUT (sidebar bottom) ──
+        function logoutUser() {
+            Swal.fire({
+                title: "Logout?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#1a5f3e",
+                confirmButtonText: "Yes, logout"
+            }).then(r => {
+                if (r.isConfirmed) {
+                    sessionStorage.removeItem('userInfo');
+                    sessionStorage.removeItem('token');
+                    window.location.href = '../html/login.html';
+                }
+            });
+        }
+
+        // ── HELPER ──
+        function getToken() {
+            const userInfo = sessionStorage.getItem('userInfo');
+            return userInfo ? JSON.parse(userInfo).token : null;
+        }
+
+        // ── INVENTORY MANAGER ──
         class EnhancedInventoryManager {
             constructor() {
                 this.inventoryData = [];
@@ -428,142 +496,60 @@
 
             async init() {
                 this.setupEventListeners();
-                if(this.getToken()) {
+                if (this.getToken()) {
                     await this.fetchInventory();
                     await this.fetchArchivedInventory();
-                    console.log("Enhanced Inventory Manager initialized!");
                 }
             }
 
             getToken() {
                 const userInfoString = sessionStorage.getItem('userInfo');
-                if (!userInfoString) {
-                    this.handleLogout("Session expired.");
-                    return null;
-                }
+                if (!userInfoString) { this.handleLogout("Session expired."); return null; }
                 try {
                     const userInfo = JSON.parse(userInfoString);
-                    if (!userInfo || !userInfo.token) {
-                        this.handleLogout("Invalid token.");
-                        return null;
-                    }
+                    if (!userInfo || !userInfo.token) { this.handleLogout("Invalid token."); return null; }
                     return userInfo.token;
-                } catch (e) {
-                    this.handleLogout("Data corrupted.");
-                    return null;
-                }
+                } catch(e) { this.handleLogout("Data corrupted."); return null; }
             }
 
             handleLogout(msg) {
-                if(msg) this.showNotification(msg, "error");
+                if (msg) this.showNotification(msg, "error");
                 sessionStorage.removeItem('userInfo');
-                setTimeout(() => {
-                    window.location.href = '../../html/login.html';
-                }, 1500);
+                setTimeout(() => { window.location.href = '../html/login.html'; }, 1500);
             }
 
             async apiCall(method, url, token, body = null) {
-                const options = {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                };
-                if (body) {
-                    options.body = JSON.stringify(body);
-                }
-
-                const response = await fetch(`http://localhost:5001${url}`, options);
+                const options = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } };
+                if (body) options.body = JSON.stringify(body);
+                const response = await fetch(`${API_BASE_URL}${url}`, options);
                 const contentType = response.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) {
-                    const textError = await response.text();
-                    throw new Error(textError || 'Server Error');
-                }
-
+                if (!contentType || !contentType.includes("application/json")) { const t = await response.text(); throw new Error(t || 'Server Error'); }
                 const data = await response.json();
-                if (!response.ok) {
-                    if (response.status === 401 || response.status === 403) {
-                        this.handleLogout("Unauthorized access.");
-                    }
-                    throw new Error(data.message || `An error occurred (${response.status})`);
-                }
+                if (!response.ok) { if (response.status === 401 || response.status === 403) this.handleLogout("Unauthorized."); throw new Error(data.message || `Error (${response.status})`); }
                 return data;
             }
 
             async fetchInventory() {
-                const token = this.getToken();
-                if (!token) return;
-
+                const token = this.getToken(); if (!token) return;
                 let url = '/api/inventory?';
                 const params = new URLSearchParams();
-                if (this.currentSearch) {
-                    params.append('name', this.currentSearch);
-                }
-                if (this.currentFilter !== 'all') {
-                    params.append('status', this.currentFilter);
-                }
+                if (this.currentSearch) params.append('name', this.currentSearch);
+                if (this.currentFilter !== 'all') params.append('status', this.currentFilter);
                 url += params.toString();
-
-                try {
-                    this.inventoryData = await this.apiCall('GET', url, token);
-                    this.renderInventoryTable();
-                    this.updateAlerts();
-                } catch (error) {
-                    this.showNotification(error.message, "error");
-                }
+                try { this.inventoryData = await this.apiCall('GET', url, token); this.renderInventoryTable(); this.updateAlerts(); }
+                catch(e) { this.showNotification(e.message, "error"); }
             }
 
             async fetchArchivedInventory() {
-                const token = this.getToken();
-                if (!token) return;
-
-                try {
-                    this.archiveData = await this.apiCall('GET', '/api/inventory/archived', token);
-                    this.renderArchiveTable();
-                } catch (error) {
-                    this.showNotification(error.message, "error");
-                }
-            }
-
-            async populateDropdown() {
-                const select = document.getElementById('medicineSelect');
-                select.innerHTML = '<option value="" disabled selected>Loading...</option>';
-
-                const medicines = await this.apiCall('GET', '/api/medicines/dropdown', this.getToken());
-                if (medicines && Array.isArray(medicines)) {
-                    select.innerHTML = '<option value="" disabled selected>Select Medicine</option>';
-                    medicines.forEach(med => {
-                        const option = document.createElement('option');
-                        option.value = med.id;
-                        option.textContent = med.label;
-                        select.appendChild(option);
-                    });
-                } else {
-                    select.innerHTML = '<option value="" disabled>Error loading list</option>';
-                }
-            }
-
-            async openMedicineModal() {
-                document.getElementById('medicineModal').classList.remove('hidden');
-                await this.populateDropdown();
-            }
-
-            closeMedicineModal() {
-                document.getElementById('medicineModal').classList.add('hidden');
+                const token = this.getToken(); if (!token) return;
+                try { this.archiveData = await this.apiCall('GET', '/api/inventory/archived', token); this.renderArchiveTable(); }
+                catch(e) { this.showNotification(e.message, "error"); }
             }
 
             async saveMedicine() {
                 const hiddenIdInput = document.getElementById('medicineSelect');
-                if (!hiddenIdInput.value) {
-                    this.showNotification("Please select a medicine from the list", "error");
-                    document.getElementById('medicineSearchInput').focus();
-                    return;
-                }
-
-                const token = this.getToken();
-                if (!token) return;
-
+                if (!hiddenIdInput.value) { this.showNotification("Please select a medicine from the list", "error"); return; }
+                const token = this.getToken(); if (!token) return;
                 const medicineData = {
                     medicineId: hiddenIdInput.value,
                     batchNumber: document.getElementById('batchNumber').value,
@@ -573,57 +559,30 @@
                     expiryDate: document.getElementById('expiryDate').value,
                     minStockLevel: parseInt(document.getElementById('minStockLevel').value),
                 };
-
-                if(medicineData.expiryDate === "") {
-                    delete medicineData.expiryDate;
-                }
-
-                const isEditMode = !!this.currentEditingId;
-                const method = isEditMode ? 'PUT' : 'POST';
-                const url = isEditMode ? `/api/inventory/${this.currentEditingId}` : '/api/inventory';
-
+                if (medicineData.expiryDate === "") delete medicineData.expiryDate;
+                const isEdit = !!this.currentEditingId;
                 try {
-                    await this.apiCall(method, url, token, medicineData);
+                    await this.apiCall(isEdit ? 'PUT' : 'POST', isEdit ? `/api/inventory/${this.currentEditingId}` : '/api/inventory', token, medicineData);
                     this.closeMedicineModal();
-                    this.showNotification(isEditMode ? "Stock updated!" : "Stock added!", "success");
+                    this.showNotification(isEdit ? "Stock updated!" : "Stock added!", "success");
                     await this.fetchInventory();
-                } catch (error) {
-                    this.showNotification(error.message, "error");
-                }
+                } catch(e) { this.showNotification(e.message, "error"); }
             }
 
             async handleConfirmAction() {
                 const { type, id } = this.currentAction;
-                const token = this.getToken();
-                if (!token) return;
-
+                const token = this.getToken(); if (!token) return;
                 try {
-                    let successMessage = "";
-
-                    if (type === 'archive') {
-                        await this.apiCall('PATCH', `/api/inventory/${id}/archive`, token);
-                        successMessage = "Item archived successfully!";
-                    } else if (type === 'restore') {
-                        await this.apiCall('PATCH', `/api/inventory/${id}/restore`, token);
-                        successMessage = "Item restored successfully!";
-                    } else if (type === 'delete') {
-                        await this.apiCall('DELETE', `/api/inventory/${id}`, token);
-                        successMessage = "Item permanently deleted!";
-                    } else if (type === 'clear-archive') {
-                        const result = await this.apiCall('DELETE', '/api/inventory/archive/all', token);
-                        successMessage = `Archive cleared! Items deleted.`;
-                    }
-
+                    let msg = "";
+                    if (type === 'archive')       { await this.apiCall('PATCH', `/api/inventory/${id}/archive`, token); msg = "Item archived!"; }
+                    else if (type === 'restore')   { await this.apiCall('PATCH', `/api/inventory/${id}/restore`, token); msg = "Item restored!"; }
+                    else if (type === 'delete')    { await this.apiCall('DELETE', `/api/inventory/${id}`, token); msg = "Item deleted!"; }
+                    else if (type === 'clear-archive') { await this.apiCall('DELETE', '/api/inventory/archive/all', token); msg = "Archive cleared!"; }
                     this.closeDeleteModal();
-                    this.showNotification(successMessage, "success");
-
+                    this.showNotification(msg, "success");
                     await this.fetchInventory();
                     await this.fetchArchivedInventory();
-                } catch (error) {
-                    console.error("Action failed:", error);
-                    this.showNotification(error.message, "error");
-                    this.closeDeleteModal();
-                }
+                } catch(e) { this.showNotification(e.message, "error"); this.closeDeleteModal(); }
             }
 
             setupEventListeners() {
@@ -642,48 +601,24 @@
                 document.getElementById('applyFilterBtn').addEventListener('click', () => this.applyFilters());
                 document.getElementById('clearFilterBtn').addEventListener('click', () => this.clearFilters());
                 document.getElementById('clearArchiveBtn').addEventListener('click', () => this.openConfirmationModal('clear-archive', null));
-
-                const modals = ['medicineModal', 'deleteModal', 'filterModal', 'adminPasswordModal'];
-                modals.forEach(id => {
+                ['medicineModal','deleteModal','filterModal'].forEach(id => {
                     const el = document.getElementById(id);
-                    if(el) el.addEventListener('click', (e) => {
-                        if (e.target === el) el.classList.add('hidden');
-                    });
+                    if (el) el.addEventListener('click', (e) => { if (e.target === el) el.classList.add('hidden'); });
                 });
             }
 
-            renderInventoryTable(filteredData = null) {
+            renderInventoryTable() {
                 const tableBody = document.getElementById('inventoryTableBody');
-                const dataToRender = this.inventoryData;
-
                 if (!tableBody) return;
-
-                if (dataToRender.length === 0) {
-                    if (this.currentFilter !== 'all' || this.currentSearch) {
-                        tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-subtext-light">No items match your filter.</td></tr>`;
-                    } else {
-                        tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-subtext-light">No active inventory found.</td></tr>`;
-                    }
-                    return;
-                }
-
-                tableBody.innerHTML = dataToRender.map(item => {
-                    const medicine = item.medicine;
-                    if (!medicine) return '';
-
-                    const supplierName = medicine.supplier? medicine.supplier.name : 'N/A';
+                if (!this.inventoryData.length) { tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-subtext-light">No active inventory found.</td></tr>`; return; }
+                tableBody.innerHTML = this.inventoryData.map(item => {
+                    const medicine = item.medicine; if (!medicine) return '';
+                    const supplierName = medicine.supplier ? medicine.supplier.name : 'N/A';
                     let statusText = "In Stock";
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-
-                    if (item.expiryDate && new Date(item.expiryDate) < today) {
-                        statusText = "Expired";
-                    } else if (item.quantity === 0) {
-                        statusText = "Out of Stock";
-                    } else if (item.quantity <= item.minStockLevel) {
-                        statusText = "Low Stock";
-                    }
-
+                    const today = new Date(); today.setHours(0,0,0,0);
+                    if (item.expiryDate && new Date(item.expiryDate) < today) statusText = "Expired";
+                    else if (item.quantity === 0) statusText = "Out of Stock";
+                    else if (item.quantity <= item.minStockLevel) statusText = "Low Stock";
                     return `<tr class="border-b border-border-light dark:border-border-dark hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                         <td class="px-6 py-4 font-medium whitespace-nowrap text-text-light dark:text-text-dark">${medicine.name}</td>
                         <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${item.batchNumber || 'N/A'}</td>
@@ -691,19 +626,11 @@
                         <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${this.formatDate(item.expiryDate)}</td>
                         <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${supplierName}</td>
                         <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">₱${item.sellingPrice.toFixed(2)}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-3 py-1 text-xs font-medium rounded-full ${this.getStatusClass(item, statusText)}">${statusText}</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center justify-center gap-2">
-                                <button class="action-btn edit-btn" onclick="inventoryManager.openMedicineModal('${item._id}')">
-                                    <span class="material-icons text-sm">edit</span> Edit
-                                </button>
-                                <button class="action-btn archive-btn" onclick="inventoryManager.openConfirmationModal('archive', '${item._id}')">
-                                    <span class="material-icons text-sm">archive</span> Archive
-                                </button>
-                            </div>
-                        </td>
+                        <td class="px-6 py-4"><span class="px-3 py-1 text-xs font-medium rounded-full ${this.getStatusClass(item, statusText)}">${statusText}</span></td>
+                        <td class="px-6 py-4"><div class="flex items-center justify-center gap-2">
+                            <button class="action-btn edit-btn" onclick="inventoryManager.openMedicineModal('${item._id}')"><span class="material-icons text-sm">edit</span> Edit</button>
+                            <button class="action-btn archive-btn" onclick="inventoryManager.openConfirmationModal('archive','${item._id}')"><span class="material-icons text-sm">archive</span> Archive</button>
+                        </div></td>
                     </tr>`;
                 }).join('');
             }
@@ -711,20 +638,11 @@
             renderArchiveTable(filteredData = null) {
                 const tableBody = document.getElementById('archiveTableBody');
                 const dataToRender = filteredData || this.archiveData;
-
                 if (!tableBody) return;
-
-                if (dataToRender.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-subtext-light">The archive is empty.</td></tr>`;
-                    return;
-                }
-
+                if (!dataToRender.length) { tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-subtext-light">The archive is empty.</td></tr>`; return; }
                 tableBody.innerHTML = dataToRender.map(item => {
-                    const medicine = item.medicine;
-                    if (!medicine) return '';
-
+                    const medicine = item.medicine; if (!medicine) return '';
                     const supplierName = medicine.supplier ? medicine.supplier.name : 'N/A';
-
                     return `<tr class="border-b border-border-light dark:border-border-dark hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                         <td class="px-6 py-4 font-medium whitespace-nowrap text-text-light dark:text-text-dark">${medicine.name}</td>
                         <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${item.batchNumber || 'N/A'}</td>
@@ -733,145 +651,70 @@
                         <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${supplierName}</td>
                         <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">₱${item.sellingPrice.toFixed(2)}</td>
                         <td class="px-6 py-4 text-subtext-light dark:text-subtext-dark">${this.formatDate(item.updatedAt)}</td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center justify-center gap-2">
-                                <button class="action-btn restore-btn" onclick="inventoryManager.openConfirmationModal('restore', '${item._id}')">
-                                    <span class="material-icons text-sm">restore</span> Restore
-                                </button>
-                                <button class="action-btn delete-btn" onclick="inventoryManager.openConfirmationModal('delete', '${item._id}')">
-                                    <span class="material-icons text-sm">delete_forever</span> Delete
-                                </button>
-                            </div>
-                        </td>
+                        <td class="px-6 py-4"><div class="flex items-center justify-center gap-2">
+                            <button class="action-btn restore-btn" onclick="inventoryManager.openConfirmationModal('restore','${item._id}')"><span class="material-icons text-sm">restore</span> Restore</button>
+                            <button class="action-btn delete-btn" onclick="inventoryManager.openConfirmationModal('delete','${item._id}')"><span class="material-icons text-sm">delete_forever</span> Delete</button>
+                        </div></td>
                     </tr>`;
                 }).join('');
             }
 
             updateAlerts() {
-                const thirtyDaysFromNow = new Date();
-                thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-
-                const lowStockItems = this.inventoryData.filter(item => item.quantity <= item.minStockLevel && item.quantity > 0);
-                const outOfStockItems = this.inventoryData.filter(item => item.quantity === 0);
-                const expiringItems = this.inventoryData.filter(item => {
-                    if (!item.expiryDate) return false;
-                    const expiryDate = new Date(item.expiryDate);
-                    return expiryDate <= thirtyDaysFromNow && expiryDate > new Date();
-                });
-
+                const thirtyDaysFromNow = new Date(); thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+                const lowStockItems  = this.inventoryData.filter(i => i.quantity <= i.minStockLevel && i.quantity > 0);
+                const outOfStockItems = this.inventoryData.filter(i => i.quantity === 0);
+                const expiringItems  = this.inventoryData.filter(i => { if (!i.expiryDate) return false; const e = new Date(i.expiryDate); return e <= thirtyDaysFromNow && e > new Date(); });
                 const lowStockList = document.getElementById('lowStockAlerts');
                 if (lowStockList) {
-                    const lowStockAlerts = lowStockItems.map(item => `<li>${item.medicine.name} - Batch: ${item.batchNumber} (${item.quantity} units)</li>`);
-                    const outOfStockAlerts = outOfStockItems.map(item => `<li>${item.medicine.name} - Batch: ${item.batchNumber} (0 units)</li>`);
-                    const allAlerts = [...lowStockAlerts, ...outOfStockAlerts];
-                    lowStockList.innerHTML = allAlerts.length > 0 ? allAlerts.join('') : '<li>No low stock alerts</li>';
+                    const all = [...lowStockItems.map(i => `<li>${i.medicine.name} - Batch: ${i.batchNumber} (${i.quantity} units)</li>`), ...outOfStockItems.map(i => `<li>${i.medicine.name} - Batch: ${i.batchNumber} (0 units)</li>`)];
+                    lowStockList.innerHTML = all.length ? all.join('') : '<li>No low stock alerts</li>';
                 }
-
                 const expiryList = document.getElementById('expiryAlerts');
                 if (expiryList) {
-                    const alerts = expiringItems.map(item => `<li>${item.medicine.name} - Batch: ${item.batchNumber} (Expires: ${this.formatDate(item.expiryDate)})</li>`);
-                    expiryList.innerHTML = alerts.length > 0 ? alerts.join('') : '<li>No expiry alerts</li>';
+                    const alerts = expiringItems.map(i => `<li>${i.medicine.name} - Batch: ${i.batchNumber} (Expires: ${this.formatDate(i.expiryDate)})</li>`);
+                    expiryList.innerHTML = alerts.length ? alerts.join('') : '<li>No expiry alerts</li>';
                 }
             }
 
             handleSearch(event, type = 'inventory') {
-                const searchTerm = event.target.value;
-                if (type === 'inventory') {
-                    this.currentSearch = searchTerm;
-                    this.fetchInventory();
-                } else {
-                    const filteredData = this.archiveData.filter(item =>
-                        item.medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        (item.batchNumber && item.batchNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                        (item.medicine.supplier && item.medicine.supplier.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                    );
-                    this.renderArchiveTable(filteredData);
-                }
+                const term = event.target.value;
+                if (type === 'inventory') { this.currentSearch = term; this.fetchInventory(); }
+                else { this.renderArchiveTable(this.archiveData.filter(i => i.medicine.name.toLowerCase().includes(term.toLowerCase()) || (i.batchNumber && i.batchNumber.toLowerCase().includes(term.toLowerCase())))); }
             }
 
-            openFilterModal() {
-                document.querySelector(`input[name="filterStatus"][value="${this.currentFilter}"]`).checked = true;
-                document.getElementById('filterModal').classList.remove('hidden');
-            }
-
-            closeFilterModal() {
-                document.getElementById('filterModal').classList.add('hidden');
-            }
-
-            applyFilters() {
-                this.currentFilter = document.querySelector('input[name="filterStatus"]:checked').value;
-                this.fetchInventory();
-                this.closeFilterModal();
-            }
-
-            clearFilters() {
-                this.currentFilter = 'all';
-                document.querySelector(`input[name="filterStatus"][value="all"]`).checked = true;
-                this.fetchInventory();
-                this.closeFilterModal();
-            }
+            openFilterModal()  { document.querySelector(`input[name="filterStatus"][value="${this.currentFilter}"]`).checked = true; document.getElementById('filterModal').classList.remove('hidden'); }
+            closeFilterModal() { document.getElementById('filterModal').classList.add('hidden'); }
+            applyFilters()     { this.currentFilter = document.querySelector('input[name="filterStatus"]:checked').value; this.fetchInventory(); this.closeFilterModal(); }
+            clearFilters()     { this.currentFilter = 'all'; document.querySelector(`input[name="filterStatus"][value="all"]`).checked = true; this.fetchInventory(); this.closeFilterModal(); }
 
             openConfirmationModal(type, id) {
                 const modal = document.getElementById('deleteModal');
                 const message = document.getElementById('deleteMessage');
                 const confirmBtn = document.getElementById('confirmDeleteBtn');
-
                 this.currentAction = { type, id };
-
                 let item;
-                if (type === 'archive') {
-                    item = this.inventoryData.find(i => i._id === id);
-                    if (!item) return;
-                    message.textContent = `Are you sure you want to archive "${item.medicine.name}" (Batch: ${item.batchNumber})?`;
-                    confirmBtn.className = "flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90";
-                    confirmBtn.innerHTML = "Archive";
-                } else if (type === 'restore') {
-                    item = this.archiveData.find(i => i._id === id);
-                    if (!item) return;
-                    message.textContent = `Are you sure you want to restore "${item.medicine.name}" (Batch: ${item.batchNumber})?`;
-                    confirmBtn.className = "flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90";
-                    confirmBtn.innerHTML = "Restore";
-                } else if (type === 'delete') {
-                    item = this.archiveData.find(i => i._id === id);
-                    if (!item) return;
-                    message.textContent = `Are you sure you want to PERMANENTLY delete "${item.medicine.name}"? This cannot be undone.`;
-                    confirmBtn.className = "flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90";
-                    confirmBtn.innerHTML = "Delete";
-                } else if (type === 'clear-archive') {
-                    message.textContent = `Are you sure you want to PERMANENTLY delete ALL ${this.archiveData.length} items in the archive? This cannot be undone.`;
-                    confirmBtn.className = "flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90";
-                    confirmBtn.innerHTML = "Clear Archive";
-                }
-
+                if (type === 'archive')       { item = this.inventoryData.find(i => i._id === id); if (!item) return; message.textContent = `Archive "${item.medicine.name}" (Batch: ${item.batchNumber})?`; confirmBtn.className = "flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90"; confirmBtn.textContent = "Archive"; }
+                else if (type === 'restore')   { item = this.archiveData.find(i => i._id === id); if (!item) return; message.textContent = `Restore "${item.medicine.name}"?`; confirmBtn.className = "flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"; confirmBtn.textContent = "Restore"; }
+                else if (type === 'delete')    { item = this.archiveData.find(i => i._id === id); if (!item) return; message.textContent = `Permanently delete "${item.medicine.name}"? This cannot be undone.`; confirmBtn.className = "flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90"; confirmBtn.textContent = "Delete"; }
+                else if (type === 'clear-archive') { message.textContent = `Permanently delete ALL ${this.archiveData.length} archived items? This cannot be undone.`; confirmBtn.className = "flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90"; confirmBtn.textContent = "Clear Archive"; }
                 modal.classList.remove('hidden');
             }
 
-            closeDeleteModal() {
-                document.getElementById('deleteModal').classList.add('hidden');
-                this.currentAction = { type: null, id: null };
-            }
+            closeDeleteModal() { document.getElementById('deleteModal').classList.add('hidden'); this.currentAction = { type:null, id:null }; }
 
             async openMedicineModal(medicineId = null) {
                 const modal = document.getElementById('medicineModal');
-                const form = document.getElementById('medicineForm');
+                const form  = document.getElementById('medicineForm');
                 modal.classList.remove('hidden');
                 form.reset();
-
                 await this.populateMedicineDropdown();
-
                 if (medicineId) {
                     document.getElementById('modalTitle').textContent = "Edit Stock";
                     this.currentEditingId = medicineId;
                     const item = this.inventoryData.find(i => i._id === medicineId);
-                    if (item) {
-                        if(item.medicine) {
-                            const medID = item.medicine._id || item.medicine;
-                            const medName = item.medicine.name || "Unknown";
-                            const medStrength = item.medicine.strength || "";
-                            document.getElementById('medicineSelect').value = medID;
-                            document.getElementById('medicineSearchInput').value = `${medName} (${medStrength})`;
-                        }
-
+                    if (item && item.medicine) {
+                        document.getElementById('medicineSelect').value = item.medicine._id || item.medicine;
+                        document.getElementById('medicineSearchInput').value = `${item.medicine.name} (${item.medicine.strength || ''})`;
                         document.getElementById('batchNumber').value = item.batchNumber;
                         document.getElementById('quantity').value = item.quantity;
                         document.getElementById('costPrice').value = item.costPrice;
@@ -886,125 +729,62 @@
                     document.getElementById('minStockLevel').value = 10;
                     document.getElementById('medicineSelect').value = "";
                     document.getElementById('medicineSearchInput').value = "";
-                    const defaultExpiry = new Date();
-                    defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 1);
-                    document.getElementById('expiryDate').value = defaultExpiry.toISOString().split('T')[0];
+                    const def = new Date(); def.setFullYear(def.getFullYear() + 1);
+                    document.getElementById('expiryDate').value = def.toISOString().split('T')[0];
                 }
             }
 
-            closeMedicineModal() {
-                document.getElementById('medicineModal').classList.add('hidden');
-                this.currentEditingId = null;
-            }
-
-            clearArchive() {
-                this.openConfirmationModal('clear-archive', null);
-            }
+            closeMedicineModal() { document.getElementById('medicineModal').classList.add('hidden'); this.currentEditingId = null; }
 
             switchTab(tab) {
                 this.currentTab = tab;
-                const inventoryTab = document.getElementById('inventoryTab');
-                const archiveTab = document.getElementById('archiveTab');
-
+                const inv = document.getElementById('inventoryTab');
+                const arc = document.getElementById('archiveTab');
                 if (tab === 'inventory') {
-                    inventoryTab.classList.add('active');
-                    archiveTab.classList.remove('active');
+                    inv.classList.add('active'); arc.classList.remove('active');
                     document.getElementById('inventorySection').classList.remove('hidden');
                     document.getElementById('archiveSection').classList.add('hidden');
                     document.getElementById('alertsSection').classList.remove('hidden');
                 } else {
-                    inventoryTab.classList.remove('active');
-                    archiveTab.classList.add('active');
+                    inv.classList.remove('active'); arc.classList.add('active');
                     document.getElementById('inventorySection').classList.add('hidden');
                     document.getElementById('archiveSection').classList.remove('hidden');
                     document.getElementById('alertsSection').classList.add('hidden');
                 }
             }
 
-            generateBatchNumber() {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = String(now.getMonth() + 1).padStart(2, '0');
-                const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-                return `BCH${year}${month}${random}`;
-            }
-
-            formatDate(dateString) {
-                if (!dateString) return 'N/A';
-                try {
-                    return new Date(dateString).toLocaleDateString('en-PH', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    });
-                } catch (error) {
-                    console.error("Date formatting error:", error);
-                    return dateString;
-                }
-            }
-
+            generateBatchNumber() { const n = new Date(); return `BCH${n.getFullYear()}${String(n.getMonth()+1).padStart(2,'0')}${Math.floor(Math.random()*1000).toString().padStart(3,'0')}`; }
+            formatDate(dateString) { if (!dateString) return 'N/A'; try { return new Date(dateString).toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' }); } catch(e) { return dateString; } }
             getStatusClass(item, statusText) {
-                if (statusText === "Out of Stock" || statusText === "Expired") {
-                    return "bg-secondary/10 text-secondary dark:bg-secondary/20 dark:text-secondary";
-                } else if (statusText === "Low Stock") {
-                    return "bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning";
-                } else {
-                    return "bg-success/10 text-success dark:bg-success/20 dark:text-success";
-                }
+                if (statusText === "Out of Stock" || statusText === "Expired") return "bg-secondary/10 text-secondary";
+                if (statusText === "Low Stock") return "bg-warning/10 text-warning";
+                return "bg-success/10 text-success";
             }
-
             showNotification(message, type = "info") {
-                const notification = document.createElement('div');
-                notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[100] transform transition-all duration-300 ${
-                    type === 'success' ? 'bg-success text-white' :
-                    type === 'error' ? 'bg-secondary text-white' :
-                    'bg-primary text-white'
-                }`;
-                notification.innerHTML = `<div class="flex items-center gap-2">
-                    <span class="material-icons">${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info'}</span>
-                    <span>${message}</span>
-                </div>`;
-                document.body.appendChild(notification);
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
+                const n = document.createElement('div');
+                n.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[100] flex items-center gap-2 text-white ${type === 'success' ? 'bg-success' : type === 'error' ? 'bg-secondary' : 'bg-primary'}`;
+                n.innerHTML = `<span class="material-icons">${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info'}</span><span>${message}</span>`;
+                document.body.appendChild(n);
+                setTimeout(() => n.remove(), 3000);
             }
 
             async populateMedicineDropdown() {
                 const listContainer = document.getElementById('medicineDropdownList');
-                const searchInput = document.getElementById('medicineSearchInput');
-
                 try {
                     const medicines = await this.apiCall('GET', '/api/medicines/dropdown', this.getToken());
-                    if (medicines && Array.isArray(medicines)) {
-                        this.cachedMedicines = medicines;
-                        this.renderDropdownOptions(medicines);
-                        this.setupDropdownListeners();
-                    }
-                } catch (error) {
-                    console.error("Dropdown Error:", error);
-                    listContainer.innerHTML = '<div class="p-2 text-sm text-secondary">Error loading list</div>';
-                }
+                    if (medicines && Array.isArray(medicines)) { this.cachedMedicines = medicines; this.renderDropdownOptions(medicines); this.setupDropdownListeners(); }
+                } catch(e) { listContainer.innerHTML = '<div class="p-2 text-sm text-secondary">Error loading list</div>'; }
             }
 
             renderDropdownOptions(items) {
                 const listContainer = document.getElementById('medicineDropdownList');
                 listContainer.innerHTML = '';
-
-                if (items.length === 0) {
-                    listContainer.innerHTML = '<div class="p-2 text-sm text-subtext-light dark:text-subtext-dark">No matches found</div>';
-                    return;
-                }
-
+                if (!items.length) { listContainer.innerHTML = '<div class="p-2 text-sm text-subtext-light">No matches found</div>'; return; }
                 items.forEach(med => {
                     const div = document.createElement('div');
                     div.className = 'px-4 py-2 text-sm text-text-light dark:text-text-dark hover:bg-primary/10 cursor-pointer transition-colors';
                     div.textContent = med.label;
-                    div.onclick = () => {
-                        document.getElementById('medicineSelect').value = med.id;
-                        document.getElementById('medicineSearchInput').value = med.label;
-                        listContainer.classList.add('hidden');
-                    };
+                    div.onclick = () => { document.getElementById('medicineSelect').value = med.id; document.getElementById('medicineSearchInput').value = med.label; listContainer.classList.add('hidden'); };
                     listContainer.appendChild(div);
                 });
             }
@@ -1012,27 +792,65 @@
             setupDropdownListeners() {
                 const searchInput = document.getElementById('medicineSearchInput');
                 const listContainer = document.getElementById('medicineDropdownList');
-
                 searchInput.onfocus = () => listContainer.classList.remove('hidden');
                 searchInput.onblur = () => setTimeout(() => listContainer.classList.add('hidden'), 200);
-                searchInput.oninput = (e) => {
-                    const query = e.target.value.toLowerCase();
-                    const filtered = this.cachedMedicines.filter(m =>
-                        m.label.toLowerCase().includes(query)
-                    );
-                    this.renderDropdownOptions(filtered);
-                    listContainer.classList.remove('hidden');
-                };
+                searchInput.oninput = (e) => { const q = e.target.value.toLowerCase(); this.renderDropdownOptions(this.cachedMedicines.filter(m => m.label.toLowerCase().includes(q))); listContainer.classList.remove('hidden'); };
             }
         }
 
-        let inventoryManager;
+        // ── NOTIFICATIONS ──
         document.addEventListener('DOMContentLoaded', function() {
-            if (!window.inventoryManager) {
-                inventoryManager = new EnhancedInventoryManager();
-                window.inventoryManager = inventoryManager;
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            if (notificationBtn && notificationDropdown) {
+                notificationBtn.addEventListener('click', (e) => { e.stopPropagation(); notificationDropdown.classList.toggle('show'); });
+                document.addEventListener('click', () => notificationDropdown.classList.remove('show'));
+                notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
             }
         });
+
+        async function updateNotificationBadge() {
+            try {
+                const token = getToken(); if (!token) return;
+                const res = await fetch(`${API_BASE_URL}/api/inventory`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) return;
+                const inventory = await res.json();
+                const alerts = generateAlertsFromInventory(inventory);
+                const badge = document.getElementById('notificationBadge');
+                if (badge) { badge.textContent = alerts.length; badge.style.display = alerts.length > 0 ? 'flex' : 'none'; }
+                updateNotificationDropdown(alerts);
+            } catch(e) { console.error('Notification error:', e); }
+        }
+
+        function generateAlertsFromInventory(inventory) {
+            const alerts = [], today = new Date(), thirtyDays = new Date();
+            thirtyDays.setDate(today.getDate() + 30);
+            inventory.forEach(item => {
+                const medName = item.medicine ? (item.medicine.name || 'Unknown') : 'Unknown';
+                if (item.expiryDate) { const exp = new Date(item.expiryDate); if (exp < today) { alerts.push({ type:'expiry', severity:'critical', title:'Medicine Expired', medicine:medName, description:`Expired on ${exp.toLocaleDateString()}`, icon:'event_busy', iconColor:'#EF4444', time:'Just now' }); } else if (exp < thirtyDays) { const d = Math.ceil((exp-today)/(864e5)); alerts.push({ type:'expiry', severity:'high', title:'Expiring Soon', medicine:medName, description:`Expires in ${d} days`, icon:'schedule', iconColor:'#F59E0B', time:`${d} days left` }); } }
+                if (item.quantity === 0) { alerts.push({ type:'shortage', severity:'medium', title:'Out of Stock', medicine:medName, description:'Stock is empty', icon:'inventory_2', iconColor:'#358E83', time:'Immediate' }); }
+                else if (item.quantity <= item.minStockLevel) { alerts.push({ type:'shortage', severity:'medium', title:'Low Stock', medicine:medName, description:`Only ${item.quantity} units remaining`, icon:'inventory_2', iconColor:'#358E83', time:'Reorder soon' }); }
+            });
+            return alerts;
+        }
+
+        function updateNotificationDropdown(alerts) {
+            const contentDiv = document.querySelector('#notificationDropdown .max-h-80');
+            if (!contentDiv) return;
+            if (!alerts.length) { contentDiv.innerHTML = `<div class="notification-item text-center text-subtext-light"><span class="material-icons text-4xl mb-2 block">notifications_none</span><p class="text-sm">No new notifications</p></div>`; return; }
+            const sorted = [...alerts].sort((a,b) => ({critical:0,high:1,medium:2}[a.severity]||3) - ({critical:0,high:1,medium:2}[b.severity]||3)).slice(0,5);
+            contentDiv.innerHTML = sorted.map(a => `<div class="notification-item" onclick="window.location.href='medication_alerts.html'"><div class="flex items-start gap-3"><span class="material-icons text-lg mt-0.5" style="color:${a.iconColor}">${a.icon}</span><div><p class="text-sm font-medium text-text-light">${a.title}</p><p class="text-xs text-subtext-light">${a.medicine} - ${a.description}</p><p class="text-xs text-subtext-light mt-1">${a.time}</p></div></div></div>`).join('');
+        }
+
+        // ── INIT ──
+        let inventoryManager;
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.inventoryManager) { inventoryManager = new EnhancedInventoryManager(); window.inventoryManager = inventoryManager; }
+            setTimeout(updateNotificationBadge, 1000);
+            setInterval(updateNotificationBadge, 30000);
+        });
     </script>
+
+    <script src="../js/windowcontrollerbtn.js"></script>
 </body>
 </html>
